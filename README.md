@@ -85,9 +85,9 @@ jobs:
         uses: JohnsonRan/nomore-spam@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          ai-base-url: ${{ secrets.AI_BASE_URL }}  # 可选：自定义API端点
+          ai-base-url: ${{ secrets.AI_BASE_URL }}  # 可选：自定义API端点（去除 /chat/completions）
           ai-api-key: ${{ secrets.AI_API_KEY }}  # 可选：自定义API密钥
-          ai-model: 'openai/gpt-4o'
+          ai-model: ${{ secrets.AI_MODEL }}  # 可选：自定义模型名称
           labels: 'bug,enhancement,question'
           analyze-file-changes: 'true'
           max-analysis-depth: 'normal'
