@@ -117,12 +117,15 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     const decision = await callAI(openai, aiModel, prompt, config, 'Issue垃圾检测');
     
     if (decision === 'CLOSE') {
+      // 构建README链接
+      const readmeUrl = `https://github.com/${owner}/${repo}#readme`;
+      
       // 添加评论说明关闭原因
       await octokit.rest.issues.createComment({
         owner,
         repo,
         issue_number: issue.number,
-        body: config.responses.issue_closed
+        body: config.responses.issue_closed.replace('{readme_url}', readmeUrl)
       });
       
       // 关闭Issue
