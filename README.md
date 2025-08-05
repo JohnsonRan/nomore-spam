@@ -5,6 +5,7 @@
 ## 功能特性
 
 - 🤖 **AI驱动检测**: 使用GitHub Models API进行智能垃圾内容检测
+- 📝 **模板智能处理**: 自动识别GitHub Issue模板，提取用户实际填写内容，避免AI被模板结构误导
 - 📝 **Issue检查**: 检测新Issue是否已在README中提到或为垃圾信息
 - 🔄 **PR检查**: 检测新Pull Request是否为垃圾信息
 - 🔒 **自动处理**: 自动关闭并锁定检测到的垃圾内容
@@ -98,20 +99,21 @@ jobs:
 
 ### Issue检测
 
-对于新创建的Issue，Action会进行三级智能检测：
+对于新创建的Issue，Action会进行智能检测：
 
-1. **垃圾检测**: 读取仓库的README.md文件内容，将Issue标题、内容和README内容一起发送给AI
-2. **智能判断**: AI会判断Issue应该如何处理：
+1. **模板智能识别**: 自动检测Issue是否使用了GitHub Issue模板
+   - 识别常见模板模式（如标题前缀、Markdown标题、表格等）
+   - 提取用户实际填写的内容，过滤模板结构
+   - 分析内容质量和完整性
+
+2. **垃圾检测**: 结合仓库README和模板分析结果，使用AI判断Issue质量
+3. **智能判断**: AI会判断Issue应该如何处理：
    - **CLOSE**: 内容已在README中提到或解决，或明显的垃圾信息
    - **UNCLEAR**: 描述过于简单，缺乏有效信息
    - **KEEP**: 描述清楚且有效的正常Issue
 
-3. **自动处理**:
-   - **垃圾内容** → 添加解释评论 + 关闭并锁定Issue (标记为"Close as not planned")
-   - **描述不清** → 添加友好的补充信息提示评论 + AI智能分类并打标签
-   - **正常Issue** → AI智能分类并打标签
-
 4. **智能分类**: 对于通过垃圾检测的Issue，系统会：
+   - 使用提取的用户实际内容（而非模板结构）进行AI分析
    - 根据 `labels` 参数中指定的标签列表进行AI分析
    - 动态判断Issue属于哪种类型（如bug、enhancement、question等）
    - 自动为Issue添加最匹配的标签，便于项目管理
@@ -143,4 +145,3 @@ jobs:
 - `issues: write` - 关闭、锁定Issue和添加标签
 - `pull-requests: write` - 关闭Pull Request
 - `models: read` - 访问GitHub Models API
-

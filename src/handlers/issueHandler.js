@@ -2,6 +2,7 @@ const core = require('@actions/core');
 const { logMessage } = require('../utils/helpers');
 const { callAI } = require('../services/ai');
 const { closeIssue, addComment, addLabels, getReadmeContent } = require('../services/github');
+const { analyzeIssueQuality, generateAnalysisReport } = require('../services/templateDetector');
 
 /**
  * 处理新创建的Issue
@@ -38,12 +39,44 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     } else {
       core.warning(config.logging.readme_not_found);
     }
-    
-    // 构建AI检查提示
+
+    // 智能分析Issue内容质量和模板使用情况
+    const qualityAnalysis = analyzeIssueQuality(issueTitle, issueBody);
+    const templateAnalysisReport = generateAnalysisReport(
+      qualityAnalysis.templateInfo, 
+      qualityAnalysis.contentInfo
+    );
+
+    // 记录模板检测信息
+    if (qualityAnalysis.templateInfo.hasTemplate) {
+      core.info(logMessage(config.logging.template_detected, {
+        type: qualityAnalysis.templateInfo.templateType,
+        confidence: qualityAnalysis.templateInfo.confidence.toFixed(1)
+      }));
+      
+      core.info(logMessage(config.logging.template_analysis, {
+        sections: qualityAnalysis.contentInfo.validSections
+      }));
+
+      if (qualityAnalysis.contentInfo.userContent) {
+        core.info(logMessage(config.logging.user_content_extracted, {
+          length: qualityAnalysis.contentInfo.userContent.length
+        }));
+      }
+    }
+
+    // 记录内容质量分析
+    core.info(logMessage(config.logging.quality_analysis, {
+      level: qualityAnalysis.quality.level,
+      score: qualityAnalysis.quality.score
+    }));
+
+    // 构建AI检查提示，包含模板分析信息
     const prompt = config.prompts.issue_detection
       .replace('{readme_content}', readmeContent)
       .replace('{issue_title}', issueTitle)
-      .replace('{issue_body}', issueBody);
+      .replace('{issue_body}', issueBody)
+      .replace('{template_analysis}', templateAnalysisReport);
     
     // 调用AI进行垃圾检测
     const decision = await callAI(openai, aiModel, prompt, config, 'Issue检测');
@@ -51,9 +84,9 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     if (decision === 'CLOSE') {
       await handleSpamIssue(octokit, owner, repo, issue, config);
     } else if (decision === 'UNCLEAR') {
-      await handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList);
+      await handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
     } else {
-      await handleValidIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList);
+      await handleValidIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
     }
     
   } catch (error) {
@@ -103,7 +136,7 @@ async function handleSpamIssue(octokit, owner, repo, issue, config) {
 /**
  * 处理描述不清的Issue
  */
-async function handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList) {
+async function handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis) {
   await addComment(
     octokit, 
     owner, 
@@ -116,23 +149,23 @@ async function handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitl
   core.info(logMessage(config.logging.issue_unclear_log, { number: issue.number }));
   
   // 对于描述不清的Issue，也进行分类并添加标签
-  await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList);
+  await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
 }
 
 /**
  * 处理有效Issue
  */
-async function handleValidIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList) {
+async function handleValidIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis) {
   core.info(logMessage(config.logging.issue_passed_log, { number: issue.number }));
   
   // 对于通过检查的Issue，进行分类并添加标签
-  await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList);
+  await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
 }
 
 /**
  * 对Issue进行分类并添加标签
  */
-async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList) {
+async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis) {
   try {
     core.info(logMessage(config.logging.classification_start, { number: issue.number }));
     core.info(logMessage(config.logging.available_labels, { labels: labelsList.join(', ') }));
@@ -140,9 +173,14 @@ async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueT
     // 使用配置文件中的分类提示模板
     const labelsOptions = labelsList.map(l => l.toUpperCase()).join('、');
     
+    // 优先使用提取的用户内容，如果没有则使用原始内容
+    const contentForClassification = qualityAnalysis && qualityAnalysis.contentInfo.userContent 
+      ? qualityAnalysis.contentInfo.userContent 
+      : issueBody;
+    
     const classificationPrompt = config.prompts.issue_classification
       .replace('{issue_title}', issueTitle)
-      .replace('{issue_body}', issueBody)
+      .replace('{user_content}', contentForClassification)
       .replace('{labels_options}', labelsOptions);
     
     // 调用AI进行分类
