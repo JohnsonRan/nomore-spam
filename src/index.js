@@ -165,7 +165,7 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       .replace('{issue_body}', issueBody);
     
     // 调用AI进行垃圾检测
-    const decision = await callAI(openai, aiModel, prompt, config, 'Issue垃圾检测');
+    const decision = await callAI(openai, aiModel, prompt, config, 'Issue检测');
     
     if (decision === 'CLOSE') {
       // 构建README链接
@@ -206,6 +206,22 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       );
       
       core.info(logMessage(config.logging.issue_closed_log, { number: issue.number }));
+    } else if (decision === 'UNCLEAR') {
+      // 添加评论提示用户补充信息
+      await handleApiCall(
+        () => octokit.rest.issues.createComment({
+          owner,
+          repo,
+          issue_number: issue.number,
+          body: config.responses.issue_unclear
+        }),
+        config.logging.issue_unclear_comment_failed
+      );
+      
+      core.info(logMessage(config.logging.issue_unclear_log, { number: issue.number }));
+      
+      // 对于描述不清的Issue，也进行分类并添加标签
+      await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList);
     } else {
       core.info(logMessage(config.logging.issue_passed_log, { number: issue.number }));
       

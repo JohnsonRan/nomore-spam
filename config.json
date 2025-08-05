@@ -1,6 +1,6 @@
 {
   "prompts": {
-    "issue_detection": "请分析以下GitHub Issue是否应该被关闭：\n\n仓库README内容：\n{readme_content}\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断：\n1. 该Issue内容是否已经在README中提到或解决？\n2. 该Issue是否为垃圾信息（spam）？\n\n如果满足以下任一条件，请回答\"CLOSE\"：\n- Issue内容已在README中明确提到或解决\n- Issue明显是垃圾信息、无意义内容或恶意内容\n- Issue内容过于简单、缺乏有效信息\n\n否则请回答\"KEEP\"。\n\n只需回答\"CLOSE\"或\"KEEP\"，不需要其他解释。",
+    "issue_detection": "请分析以下GitHub Issue应该如何处理：\n\n仓库README内容：\n{readme_content}\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断：\n1. 该Issue内容是否已经在README中提到或解决？\n2. 该Issue是否为垃圾信息（spam）？\n3. 该Issue描述是否过于简单、缺乏有效信息？\n\n请回答以下选项之一：\n- \"CLOSE\"：如果Issue内容已在README中明确提到或解决，或者明显是垃圾信息、无意义内容或恶意内容\n- \"UNCLEAR\"：如果Issue内容过于简单、缺乏有效信息，需要用户补充更多细节\n- \"KEEP\"：如果Issue描述清楚且有效\n\n只需回答\"CLOSE\"、\"UNCLEAR\"或\"KEEP\"，不需要其他解释。",
     
     "issue_classification": "请分析以下GitHub Issue的类型：\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断这个Issue最适合以下哪个标签：{labels_options}\n\n只需回答标签名称（如：BUG、ENHANCEMENT等），不需要其他解释。",
     
@@ -9,6 +9,7 @@
   
   "responses": {
     "issue_closed": "🤖 此Issue已被检测为重复内容或垃圾信息，将被关闭并锁定。请仔细阅读[项目README]({readme_url})，如果您认为这是误判，请联系仓库维护者。",
+    "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
     "pr_closed": "🤖 此Pull Request已被检测为垃圾信息，将被关闭。如果您认为这是误判，请联系仓库维护者。"
   },
   
@@ -19,6 +20,7 @@
     "readme_found": "成功获取README.md文件",
     "readme_not_found": "未找到README.md文件，将跳过重复内容检查",
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
+    "issue_unclear_log": "Issue #{number} 被标记为描述不清，已添加补充信息提示",
     "issue_passed_log": "Issue #{number} 通过检查，保持开启状态",
     "pr_closed_log": "PR #{number} 已被关闭",
     "pr_passed_log": "PR #{number} 通过检查，保持开启状态",
@@ -50,6 +52,7 @@
     "classification_process_error": "Issue分类过程出错: {error}",
     "readme_fetch_failed": "获取README文件失败",
     "issue_comment_failed": "添加Issue评论失败",
+    "issue_unclear_comment_failed": "添加Issue描述不清提示评论失败",
     "issue_close_failed": "关闭Issue失败",
     "issue_lock_failed": "锁定Issue失败",
     "label_add_api_failed": "添加标签API调用失败",
@@ -68,7 +71,7 @@
   
   "defaults": {
     "ai_model": "openai/gpt-4o",
-    "labels": "bug,enhancement",
+    "labels": "bug,enhancement,question",
     "analysis_depth": "normal",
     "api_base_url": "https://models.github.ai/inference",
     "lock_reason": "spam"

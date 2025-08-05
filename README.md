@@ -51,7 +51,7 @@ jobs:
 |------|------|------|--------|
 | `github-token` | - | 是 | `${{ secrets.GITHUB_TOKEN }}` |
 | `ai-model` | 模型名称 | 否 | `openai/gpt-4o` |
-| `labels` | 标签列表 | 否 | `bug,enhancement` |
+| `labels` | 标签列表 | 否 | `bug,enhancement,question` |
 | `analyze-file-changes` | 是否分析PR文件变更内容 | 否 | `true` |
 | `max-analysis-depth` | 分析深度：`light`(3文件/3行)、`normal`(5文件/5行)、`deep`(10文件/10行) | 否 | `normal` |
 
@@ -59,19 +59,22 @@ jobs:
 
 ### Issue检测
 
-对于新创建的Issue，Action会：
+对于新创建的Issue，Action会进行三级智能检测：
 
 1. **垃圾检测**: 读取仓库的README.md文件内容，将Issue标题、内容和README内容一起发送给AI
-2. **智能判断**: AI判断Issue是否：
-   - 内容已在README中提到或解决
-   - 明显的垃圾信息或无意义内容
-3. **自动处理**: 如果判断为垃圾内容，则：
-   - 添加解释评论
-   - 关闭Issue
-   - 锁定Issue（标记为spam）
-4. **智能分类**: 如果Issue通过垃圾检测，系统会进一步：
-   - 根据 `labels` 参数中指定的标签列表进行分析
-   - AI动态判断Issue属于哪种类型（如bug、enhancement、invalid等）
+2. **智能判断**: AI会判断Issue应该如何处理：
+   - **CLOSE**: 内容已在README中提到或解决，或明显的垃圾信息
+   - **UNCLEAR**: 描述过于简单，缺乏有效信息
+   - **KEEP**: 描述清楚且有效的正常Issue
+
+3. **自动处理**:
+   - **垃圾内容** → 添加解释评论 + 关闭并锁定Issue (标记为"Close as not planned")
+   - **描述不清** → 添加友好的补充信息提示评论 + AI智能分类并打标签
+   - **正常Issue** → AI智能分类并打标签
+
+4. **智能分类**: 对于通过垃圾检测的Issue，系统会：
+   - 根据 `labels` 参数中指定的标签列表进行AI分析
+   - 动态判断Issue属于哪种类型（如bug、enhancement、question等）
    - 自动为Issue添加最匹配的标签，便于项目管理
 
 ### Pull Request检测
@@ -113,5 +116,5 @@ jobs:
   uses: JohnsonRan/nomore-spam@main
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    labels: 'bug,enhancement,invalid,question,documentation'
+    labels: 'bug,enhancement,question,documentation'
 ```

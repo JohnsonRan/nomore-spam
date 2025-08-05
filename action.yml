@@ -15,9 +15,9 @@ inputs:
     required: false
     default: 'openai/gpt-4o'
   labels:
-    description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement")'
+    description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement,question"). Note: "question" label is automatically added to unclear issues'
     required: false
-    default: 'bug,enhancement'
+    default: 'bug,enhancement,question'
   analyze-file-changes:
     description: 'Whether to analyze PR file changes for spam detection (true/false)'
     required: false
