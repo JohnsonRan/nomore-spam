@@ -16,6 +16,32 @@ function loadConfig() {
   }
 }
 
+// 统一的AI API调用函数
+async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用') {
+  try {
+    core.info('准备进行' + purpose + '，使用模型: ' + aiModel);
+    
+    const response = await openai.chat.completions.create({
+      model: aiModel,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: config.ai_settings.max_tokens,
+      temperature: config.ai_settings.temperature
+    });
+    
+    const result = response.choices[0].message.content.trim().toUpperCase();
+    core.info(purpose + '结果: ' + result);
+    return result;
+    
+  } catch (aiError) {
+    core.error(purpose + '失败: ' + aiError.message);
+    if (aiError.response) {
+      core.error('状态码: ' + aiError.response.status);
+      core.error('响应体: ' + JSON.stringify(aiError.response.data));
+    }
+    throw aiError;
+  }
+}
+
 async function run() {
   try {
     // 加载配置文件
@@ -34,6 +60,9 @@ async function run() {
       baseURL: 'https://models.github.ai/inference',
       apiKey: token
     });
+    
+    core.info('API Base URL: https://models.github.ai/inference');
+    core.info('使用AI模型: ' + aiModel);
 
     // 获取仓库信息
     const { owner, repo } = context.repo;
@@ -84,29 +113,8 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       .replace('{issue_title}', issueTitle)
       .replace('{issue_body}', issueBody);
     
-    // 调用AI进行判断
-    core.info('准备调用AI模型: ' + aiModel);
-    core.info('API Base URL: https://models.github.ai/inference');
-    
-    let aiResponse;
-    try {
-      aiResponse = await openai.chat.completions.create({
-        model: aiModel,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: config.ai_settings.max_tokens,
-        temperature: config.ai_settings.temperature
-      });
-    } catch (aiError) {
-      core.error('AI API调用失败: ' + aiError.message);
-      if (aiError.response) {
-        core.error('状态码: ' + aiError.response.status);
-        core.error('响应体: ' + JSON.stringify(aiError.response.data));
-      }
-      throw aiError;
-    }
-    
-    const decision = aiResponse.choices[0].message.content.trim().toUpperCase();
-    core.info('AI决策结果: ' + decision);
+    // 调用AI进行垃圾检测
+    const decision = await callAI(openai, aiModel, prompt, config, 'Issue垃圾检测');
     
     if (decision === 'CLOSE') {
       // 添加评论说明关闭原因
@@ -136,11 +144,61 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       core.info('Issue #' + issue.number + ' 已被关闭并锁定');
     } else {
       core.info('Issue #' + issue.number + ' 通过检查，保持开放状态');
+      
+      // 对于通过检查的Issue，进行分类并添加标签
+      await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config);
     }
     
   } catch (error) {
     core.error('处理Issue时出错: ' + error.message);
     throw error;
+  }
+}
+
+async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config) {
+  try {
+    core.info('开始对Issue进行分类: #' + issue.number);
+    
+    // 构建分类提示
+    const classificationPrompt = config.prompts.issue_classification
+      .replace('{issue_title}', issueTitle)
+      .replace('{issue_body}', issueBody);
+    
+    // 调用AI进行分类
+    let classification;
+    try {
+      classification = await callAI(openai, aiModel, classificationPrompt, config, 'Issue分类');
+    } catch (aiError) {
+      core.error('AI分类调用失败，跳过分类: ' + aiError.message);
+      return; // 分类失败不影响主流程
+    }
+    
+    // 根据分类结果添加标签
+    let labelToAdd = null;
+    if (classification === 'BUG') {
+      labelToAdd = config.labels.bug;
+    } else if (classification === 'ENHANCEMENT') {
+      labelToAdd = config.labels.enhancement;
+    }
+    
+    if (labelToAdd) {
+      try {
+        await octokit.rest.issues.addLabels({
+          owner,
+          repo,
+          issue_number: issue.number,
+          labels: [labelToAdd]
+        });
+        core.info('已为Issue #' + issue.number + ' 添加标签: ' + labelToAdd);
+      } catch (labelError) {
+        core.warning('添加标签失败: ' + labelError.message);
+      }
+    } else {
+      core.info('Issue #' + issue.number + ' 分类为OTHER，不添加特定标签');
+    }
+    
+  } catch (error) {
+    core.warning('Issue分类过程出错: ' + error.message);
   }
 }
 
@@ -157,28 +215,8 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
       .replace('{pr_title}', prTitle)
       .replace('{pr_body}', prBody);
     
-    // 调用AI进行判断
-    core.info('准备调用AI模型: ' + aiModel);
-    
-    let aiResponse;
-    try {
-      aiResponse = await openai.chat.completions.create({
-        model: aiModel,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: config.ai_settings.max_tokens,
-        temperature: config.ai_settings.temperature
-      });
-    } catch (aiError) {
-      core.error('AI API调用失败: ' + aiError.message);
-      if (aiError.response) {
-        core.error('状态码: ' + aiError.response.status);
-        core.error('响应体: ' + JSON.stringify(aiError.response.data));
-      }
-      throw aiError;
-    }
-    
-    const decision = aiResponse.choices[0].message.content.trim().toUpperCase();
-    core.info('AI决策结果: ' + decision);
+    // 调用AI进行垃圾检测
+    const decision = await callAI(openai, aiModel, prompt, config, 'PR垃圾检测');
     
     if (decision === 'CLOSE') {
       // 添加评论说明关闭原因
