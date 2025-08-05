@@ -22,7 +22,7 @@
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
     "issue_unclear_log": "Issue #{number} 被标记为描述不清，已添加补充信息提示",
     "issue_passed_log": "Issue #{number} 通过检查，保持开启状态",
-    "pr_closed_log": "PR #{number} 已被关闭",
+    "pr_closed_log": "PR #{number} 已被关闭并锁定",
     "pr_passed_log": "PR #{number} 通过检查，保持开启状态",
     "classification_start": "开始对Issue进行分类: #{number}",
     "label_added": "已为Issue #{number} 添加标签: {label}",
@@ -64,6 +64,7 @@
     "label_add_api_failed": "添加标签API调用失败",
     "pr_comment_failed": "添加PR评论失败",
     "pr_close_failed": "关闭PR失败",
+    "pr_lock_failed": "锁定PR失败",
     "pr_files_fetch_failed": "获取PR文件列表失败"
   },
   

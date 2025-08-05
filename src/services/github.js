@@ -101,9 +101,10 @@ async function closeIssue(octokit, owner, repo, issueNumber, comment, config, sh
  * @param {number} prNumber PR编号
  * @param {string} comment 关闭评论
  * @param {Object} config 配置对象
+ * @param {boolean} shouldLock 是否锁定PR
  * @returns {Promise<Array>} API调用结果数组
  */
-async function closePR(octokit, owner, repo, prNumber, comment, config) {
+async function closePR(octokit, owner, repo, prNumber, comment, config, shouldLock = true) {
   const calls = [
     {
       operation: () => octokit.rest.issues.createComment({
@@ -124,6 +125,18 @@ async function closePR(octokit, owner, repo, prNumber, comment, config) {
       errorMessage: config.logging.pr_close_failed
     }
   ];
+
+  if (shouldLock) {
+    calls.push({
+      operation: () => octokit.rest.issues.lock({
+        owner,
+        repo,
+        issue_number: prNumber,
+        lock_reason: config.defaults.lock_reason
+      }),
+      errorMessage: config.logging.pr_lock_failed
+    });
+  }
 
   return await executeApiCalls(calls);
 }
