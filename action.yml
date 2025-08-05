@@ -1,0 +1,39 @@
+name: 'NoMore Spam'
+description: 'Automatically detect and close spam issues and PRs using AI'
+author: 'GitHub'
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  github-token:
+    description: 'GitHub token with issues:write, pull-requests:write, contents:read, and models:read permissions'
+    required: true
+    default: ${{ github.token }}
+  ai-model:
+    description: 'AI model to use for spam detection'
+    required: false
+    default: 'openai/gpt-4o'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        npm ci --production
+        
+    - name: Run NoMore Spam
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        node src/index.js
+      env:
+        INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
+        INPUT_AI-MODEL: ${{ inputs.ai-model }}
