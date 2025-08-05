@@ -4,16 +4,88 @@
     
     "issue_classification": "请分析以下GitHub Issue的类型：\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断这个Issue最适合以下哪个标签：{labels_options}\n\n只需回答标签名称（如：BUG、ENHANCEMENT等），不需要其他解释。",
     
-    "pr_detection": "请分析以下GitHub Pull Request是否为垃圾信息（spam）：\n\nPR标题：{pr_title}\nPR描述：{pr_body}\n\n请判断该PR是否为垃圾信息。垃圾PR的特征包括：\n- 标题或内容无意义、随机字符\n- 明显的恶意内容或广告\n- 与项目完全无关的内容\n- 重复或机器生成的无价值内容\n- 明显的测试或玩笑性质的PR\n\n如果是垃圾信息，请回答\"CLOSE\"\n如果是正常的PR（即使质量不高但有实际贡献意图），请回答\"KEEP\"\n\n只需回答\"CLOSE\"或\"KEEP\"，不需要其他解释。"
+    "pr_detection": "请分析以下GitHub PR是否为垃圾信息：\n\n标题：{pr_title}\n描述：{pr_body}\n文件变更：\n{file_changes}\n\n垃圾PR特征：无意义内容、恶意代码、随机字符、广告、与项目无关、测试性质。\n\n如果是垃圾信息，请回答\"CLOSE\"\n如果是正常的PR（即使质量不高但有实际贡献意图），请回答\"KEEP\"\n\n只需回答\"CLOSE\"或\"KEEP\"，不需要其他解释。"
   },
   
   "responses": {
-    "issue_closed": "🤖 此Issue已被自动检测为重复内容或垃圾信息，将被关闭并锁定。请仔细阅读[项目README]({readme_url})，如果您认为这是误判，请联系仓库维护者。",
-    "pr_closed": "🤖 此Pull Request已被自动检测为垃圾信息，将被关闭。如果您认为这是误判，请联系仓库维护者。"
+    "issue_closed": "🤖 此Issue已被检测为重复内容或垃圾信息，将被关闭并锁定。请仔细阅读[项目README]({readme_url})，如果您认为这是误判，请联系仓库维护者。",
+    "pr_closed": "🤖 此Pull Request已被检测为垃圾信息，将被关闭。如果您认为这是误判，请联系仓库维护者。"
+  },
+  
+  "logging": {
+    "issue_check_start": "检查Issue: {title}",
+    "pr_check_start": "检查PR: {title}",
+    "target_repo": "目标仓库: {owner}/{repo}",
+    "readme_found": "成功获取README.md文件",
+    "readme_not_found": "未找到README.md文件，将跳过重复内容检查",
+    "issue_closed_log": "Issue #{number} 已被关闭并锁定",
+    "issue_passed_log": "Issue #{number} 通过检查，保持开启状态",
+    "pr_closed_log": "PR #{number} 已被关闭",
+    "pr_passed_log": "PR #{number} 通过检查，保持开启状态",
+    "classification_start": "开始对Issue进行分类: #{number}",
+    "label_added": "已为Issue #{number} 添加标签: {label}",
+    "label_no_match": "Issue #{number} 分类结果不匹配任何预设标签: {classification}",
+    "file_changes_count": "获取到{count}个文件的变更信息",
+    "file_changes_truncated": "(共{total}个文件，仅显示前{shown}个)",
+    "no_file_changes": "(无文件变更)",
+    "file_changes_error": "获取PR文件变更失败: {error}",
+    "file_changes_unavailable": "(无法获取文件变更信息)",
+    "file_analysis_disabled": "(文件变更分析已禁用)",
+    "file_analysis_disabled_info": "文件变更分析已禁用，仅分析标题和描述",
+    "ai_call_start": "准备进行{purpose}，使用模型: {model}",
+    "ai_call_result": "{purpose}结果: {result}",
+    "ai_call_failed": "{purpose}失败: {error}",
+    "ai_status_code": "状态码: {code}",
+    "ai_response_body": "响应体: {body}",
+    "using_ai_model": "使用AI模型: {model}",
+    "config_info": "配置信息:",
+    "analysis_depth_info": "- 分析文件变更: {analyze_changes}",
+    "analysis_depth_details": "- 分析深度: {depth} (文件数:{files}, 行数:{lines})",
+    "event_no_match": "事件类型不匹配，跳过处理",
+    "issue_process_error": "处理Issue时出错: {error}",
+    "pr_process_error": "处理PR时出错: {error}",
+    "available_labels": "可用标签: {labels}",
+    "label_add_failed": "添加标签失败: {error}",
+    "classification_failed": "AI分类调用失败，跳过分类: {error}",
+    "classification_process_error": "Issue分类过程出错: {error}",
+    "readme_fetch_failed": "获取README文件失败",
+    "issue_comment_failed": "添加Issue评论失败",
+    "issue_close_failed": "关闭Issue失败",
+    "issue_lock_failed": "锁定Issue失败",
+    "label_add_api_failed": "添加标签API调用失败",
+    "pr_comment_failed": "添加PR评论失败",
+    "pr_close_failed": "关闭PR失败",
+    "pr_files_fetch_failed": "获取PR文件列表失败"
   },
   
   "ai_settings": {
-    "max_tokens": 50,
-    "temperature": 0.1
+    "analyze_file_changes": true,
+    "max_files_to_analyze": 5,
+    "max_patch_lines_per_file": 5,
+    "max_tokens": 20,
+    "temperature": 0.05
+  },
+  
+  "defaults": {
+    "ai_model": "openai/gpt-4o",
+    "labels": "bug,enhancement",
+    "analysis_depth": "normal",
+    "api_base_url": "https://models.github.ai/inference",
+    "lock_reason": "spam"
+  },
+  
+  "analysis_depths": {
+    "light": {
+      "max_files": 3,
+      "max_lines": 3
+    },
+    "normal": {
+      "max_files": 5,
+      "max_lines": 5
+    },
+    "deep": {
+      "max_files": 10,
+      "max_lines": 10
+    }
   }
 }

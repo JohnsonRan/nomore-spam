@@ -18,6 +18,14 @@ inputs:
     description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement")'
     required: false
     default: 'bug,enhancement'
+  analyze-file-changes:
+    description: 'Whether to analyze PR file changes for spam detection (true/false)'
+    required: false
+    default: 'true'
+  max-analysis-depth:
+    description: 'Analysis depth: light=3 files/3 lines, normal=5 files/5 lines, deep=10 files/10 lines'
+    required: false
+    default: 'normal'
 
 runs:
   using: 'composite'
@@ -42,3 +50,5 @@ runs:
         INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
         INPUT_AI-MODEL: ${{ inputs.ai-model }}
         INPUT_LABELS: ${{ inputs.labels }}
+        INPUT_ANALYZE-FILE-CHANGES: ${{ inputs.analyze-file-changes }}
+        INPUT_MAX-ANALYSIS-DEPTH: ${{ inputs.max-analysis-depth }}

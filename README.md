@@ -41,8 +41,6 @@ jobs:
         uses: JohnsonRan/nomore-spam@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          ai-model: 'openai/gpt-4o'
-          labels: 'bug,enhancement'
 ```
 
 ### 2. 自定义配置
@@ -54,6 +52,8 @@ jobs:
 | `github-token` | - | 是 | `${{ secrets.GITHUB_TOKEN }}` |
 | `ai-model` | 模型名称 | 否 | `openai/gpt-4o` |
 | `labels` | 标签列表 | 否 | `bug,enhancement` |
+| `analyze-file-changes` | 是否分析PR文件变更内容 | 否 | `true` |
+| `max-analysis-depth` | 分析深度：`light`(3文件/3行)、`normal`(5文件/5行)、`deep`(10文件/10行) | 否 | `normal` |
 
 ## 检测逻辑
 
@@ -78,13 +78,18 @@ jobs:
 
 对于新创建的PR，Action会：
 
-1. 分析PR的标题和描述内容
-2. AI判断PR是否为垃圾信息：
-   - 无意义的随机内容
+1. **基本信息分析**: 分析PR的标题和描述内容
+2. **文件变更分析**（可选）: 如果启用 `analyze-file-changes`，还会分析：
+   - 修改的文件名和状态
+   - 添加/删除的行数统计
+   - 实际的代码变更内容（受限制的行数）
+3. **AI综合判断**: 判断PR是否为垃圾信息：
+   - 无意义的随机内容或字符
    - 恶意内容或广告
-   - 与项目完全无关
+   - 与项目完全无关的内容
    - 明显的测试或玩笑性质
-3. 如果判断为垃圾PR，则：
+   - 无价值的文件变更（如仅添加空行、随机字符等）
+4. **自动处理**: 如果判断为垃圾PR，则：
    - 添加解释评论
    - 关闭PR
 
