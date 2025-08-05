@@ -1,6 +1,6 @@
 # NoMore Spam GitHub Action
 
-一个用于自动检测和关闭垃圾Issue和Pull Request的GitHub Action，使用AI技术进行智能判断。
+基于AI的GitHub Action工具，自动检测并关闭垃圾Issue/PR，为有效Issue智能分类打标签。
 
 ## 功能特性
 
@@ -8,6 +8,7 @@
 - 📝 **Issue检查**: 检测新Issue是否已在README中提到或为垃圾信息
 - 🔄 **PR检查**: 检测新Pull Request是否为垃圾信息
 - 🔒 **自动处理**: 自动关闭并锁定检测到的垃圾内容
+- 🏷️ **智能标签**: 为通过检测的Issue自动分类并添加相应标签
 - 💬 **友好提示**: 为被关闭的Issue/PR添加说明评论
 
 ## 使用方法
@@ -57,15 +58,18 @@ jobs:
 
 对于新创建的Issue，Action会：
 
-1. 读取仓库的README.md文件内容
-2. 将Issue标题、内容和README内容一起发送给AI
-3. AI判断Issue是否：
+1. **垃圾检测**: 读取仓库的README.md文件内容，将Issue标题、内容和README内容一起发送给AI
+2. **智能判断**: AI判断Issue是否：
    - 内容已在README中提到或解决
    - 明显的垃圾信息或无意义内容
-4. 如果判断为应关闭，则：
+3. **自动处理**: 如果判断为垃圾内容，则：
    - 添加解释评论
    - 关闭Issue
    - 锁定Issue（标记为spam）
+4. **智能分类**: 如果Issue通过垃圾检测，系统会进一步：
+   - 分析Issue的类型和内容
+   - 自动分类为：`bug`（错误报告）、`enhancement`（功能请求）或其他
+   - 为Issue添加相应的标签，便于项目管理
 
 ### Pull Request检测
 
@@ -86,6 +90,28 @@ jobs:
 确保GitHub Token具有以下权限：
 
 - `contents: read` - 读取README.md文件
-- `issues: write` - 关闭和锁定Issue
+- `issues: write` - 关闭、锁定Issue和添加标签
 - `pull-requests: write` - 关闭Pull Request
 - `models: read` - 访问GitHub Models API
+
+## 自动标签功能
+
+### 支持的标签类型
+
+- 🐛 **bug**: 自动为错误报告、程序崩溃、异常行为等Issue添加
+- ✨ **enhancement**: 自动为功能请求、改进建议等Issue添加
+
+### 标签配置
+
+可以在`config.json`中自定义标签名称：
+
+```json
+{
+  "labels": {
+    "bug": "bug",
+    "enhancement": "enhancement"
+  }
+}
+```
+
+Action会智能分析Issue内容，识别其类型并自动添加相应标签，帮助维护者更好地管理和优先处理Issue。
