@@ -188,7 +188,8 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
           owner,
           repo,
           issue_number: issue.number,
-          state: 'closed'
+          state: 'closed',
+          state_reason: 'not_planned'
         }),
         config.logging.issue_close_failed
       );
