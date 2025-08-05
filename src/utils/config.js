@@ -29,6 +29,10 @@ function parseInputs(config) {
   const labelsInput = core.getInput('labels') || process.env.INPUT_LABELS || config.defaults.labels;
   const blacklistUsersInput = core.getInput('blacklist') || process.env.INPUT_BLACKLIST_USERS || process.env.BLACKLIST_USERS || '';
   
+  // 获取自定义AI配置参数
+  const customBaseUrl = core.getInput('ai-base-url') || process.env.INPUT_AI_BASE_URL || '';
+  const customApiKey = core.getInput('ai-api-key') || process.env.INPUT_AI_API_KEY || '';
+  
   // 解析黑名单用户列表
   const blacklistUsers = blacklistUsersInput
     ? blacklistUsersInput.split(',').map(user => user.trim().toLowerCase()).filter(user => user.length > 0)
@@ -64,6 +68,8 @@ function parseInputs(config) {
     analysisDepth,
     maxFilesToAnalyze,
     maxPatchLinesPerFile,
+    customBaseUrl,
+    customApiKey,
     config
   };
 }

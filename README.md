@@ -51,6 +51,8 @@ jobs:
 | 参数 | 描述 | 必需 | 默认值 |
 |------|------|------|--------|
 | `github-token` | - | 是 | `${{ secrets.GITHUB_TOKEN }}` |
+| `ai-base-url` | 自定义AI API基础URL（OpenAI兼容），不指定则使用GitHub Models API | 否 | `''` |
+| `ai-api-key` | 自定义AI API密钥，不指定则使用GitHub Token | 否 | `''` |
 | `ai-model` | 模型名称 | 否 | `openai/gpt-4o` |
 | `labels` | 标签列表 | 否 | `bug,enhancement,question` |
 | `analyze-file-changes` | 是否分析PR文件变更内容 | 否 | `true` |
@@ -83,11 +85,13 @@ jobs:
         uses: JohnsonRan/nomore-spam@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          ai-base-url: ${{ secrets.AI_BASE_URL }}  # 可选：自定义API端点
+          ai-api-key: ${{ secrets.AI_API_KEY }}  # 可选：自定义API密钥
           ai-model: 'openai/gpt-4o'
-          labels: 'bug,enhancement,question,documentation,feature'
+          labels: 'bug,enhancement,question'
           analyze-file-changes: 'true'
           max-analysis-depth: 'normal'
-          blacklist: ${{ secrets.BLACKLIST }}
+          blacklist: ${{ secrets.BLACKLIST }} # 可选：黑名单用户列表
 ```
 
 ## 检测逻辑
@@ -140,39 +144,3 @@ jobs:
 - `pull-requests: write` - 关闭Pull Request
 - `models: read` - 访问GitHub Models API
 
-## 自动标签功能
-
-### 灵活的标签配置
-
-通过 `labels` 参数，你可以自定义AI用于分类的标签列表：
-
-```yaml
-- name: Detect and close spam
-  uses: JohnsonRan/nomore-spam@main
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    labels: 'bug,enhancement,question,documentation'
-```
-
-## 黑名单功能
-
-1. 在你的仓库中，进入 `Settings` → `Secrets and variables` → `Actions`
-2. 点击 `New repository secret`
-3. Name: `BLACKLIST_USERS`
-4. Secret: `spammer1,spammer2,baduser` （用逗号分隔的用户名）
-5. 在工作流中使用：
-
-```yaml
-- name: Detect and close spam
-  uses: JohnsonRan/nomore-spam@main
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    blacklist: ${{ secrets.BLACKLIST }}
-```
-
-### 黑名单行为
-
-- 黑名单中的用户创建的Issue/PR会被**立即关闭**，无需经过AI检测
-- Issue会被自动锁定并标记为"not planned"
-- 会添加说明评论告知关闭原因
-- 用户名比较时**不区分大小写**

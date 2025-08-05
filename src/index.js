@@ -25,6 +25,8 @@ async function run() {
       analysisDepth,
       maxFilesToAnalyze,
       maxPatchLinesPerFile,
+      customBaseUrl,
+      customApiKey,
       config
     } = parseInputs(baseConfig);
     
@@ -32,14 +34,22 @@ async function run() {
     const octokit = github.getOctokit(token);
     const context = github.context;
     
+    // 确定使用的API配置
+    const apiBaseUrl = customBaseUrl || config.defaults.api_base_url;
+    const apiKey = customApiKey || token;
+    
     // 初始化OpenAI客户端
     const openai = new OpenAI({
-      baseURL: config.defaults.api_base_url,
-      apiKey: token
+      baseURL: apiBaseUrl,
+      apiKey: apiKey
     });
     
     // 输出配置信息
-    core.info('API Base URL: ' + config.defaults.api_base_url);
+    if (customBaseUrl) {
+      core.info(config.logging.using_custom_api);
+    } else {
+      core.info(config.logging.using_github_models);
+    }
     core.info(logMessage(config.logging.using_ai_model, { model: aiModel }));
     core.info(config.logging.config_info);
     core.info(logMessage(config.logging.analysis_depth_info, { analyze_changes: analyzeFileChanges }));
@@ -66,7 +76,6 @@ async function run() {
   }
 }
 
-// 如果直接运行此文件则执行主程序
 if (require.main === module) {
   run();
 }

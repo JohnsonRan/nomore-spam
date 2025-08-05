@@ -14,6 +14,14 @@ inputs:
     description: 'AI model to use for spam detection'
     required: false
     default: 'openai/gpt-4o'
+  ai-base-url:
+    description: 'Custom AI API base URL (OpenAI compatible). If not provided, GitHub Models API will be used'
+    required: false
+    default: ''
+  ai-api-key:
+    description: 'Custom AI API key. If not provided, GitHub token will be used'
+    required: false
+    default: ''
   labels:
     description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement,question"). Note: "question" label is automatically added to unclear issues'
     required: false
@@ -57,3 +65,5 @@ runs:
         INPUT_ANALYZE-FILE-CHANGES: ${{ inputs.analyze-file-changes }}
         INPUT_MAX-ANALYSIS-DEPTH: ${{ inputs.max-analysis-depth }}
         INPUT_BLACKLIST: ${{ inputs.blacklist }}
+        INPUT_AI-BASE-URL: ${{ inputs.ai-base-url }}
+        INPUT_AI-API-KEY: ${{ inputs.ai-api-key }}

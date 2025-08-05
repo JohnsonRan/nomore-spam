@@ -40,6 +40,8 @@
     "ai_status_code": "状态码: {code}",
     "ai_response_body": "响应体: {body}",
     "using_ai_model": "使用AI模型: {model}",
+    "using_custom_api": "使用自定义API端点",
+    "using_github_models": "使用GitHub Models API",
     "config_info": "配置信息:",
     "analysis_depth_info": "- 分析文件变更: {analyze_changes}",
     "analysis_depth_details": "- 分析深度: {depth} (文件数:{files}, 行数:{lines})",
