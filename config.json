@@ -2,7 +2,7 @@
   "prompts": {
     "issue_detection": "请分析以下GitHub Issue是否应该被关闭：\n\n仓库README内容：\n{readme_content}\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断：\n1. 该Issue内容是否已经在README中提到或解决？\n2. 该Issue是否为垃圾信息（spam）？\n\n如果满足以下任一条件，请回答\"CLOSE\"：\n- Issue内容已在README中明确提到或解决\n- Issue明显是垃圾信息、无意义内容或恶意内容\n- Issue内容过于简单、缺乏有效信息\n\n否则请回答\"KEEP\"。\n\n只需回答\"CLOSE\"或\"KEEP\"，不需要其他解释。",
     
-    "issue_classification": "请分析以下GitHub Issue的类型：\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断这个Issue属于以下哪种类型：\n1. BUG - 报告软件错误、异常行为、程序崩溃等问题\n2. ENHANCEMENT - 请求新功能、改进现有功能、建议等\n3. OTHER - 其他类型（文档、问题咨询等）\n\n只需回答\"BUG\"、\"ENHANCEMENT\"或\"OTHER\"，不需要其他解释。",
+    "issue_classification": "请分析以下GitHub Issue的类型：\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n请判断这个Issue最适合以下哪个标签：{labels_options}\n\n只需回答标签名称（如：BUG、ENHANCEMENT等），不需要其他解释。",
     
     "pr_detection": "请分析以下GitHub Pull Request是否为垃圾信息（spam）：\n\nPR标题：{pr_title}\nPR描述：{pr_body}\n\n请判断该PR是否为垃圾信息。垃圾PR的特征包括：\n- 标题或内容无意义、随机字符\n- 明显的恶意内容或广告\n- 与项目完全无关的内容\n- 重复或机器生成的无价值内容\n- 明显的测试或玩笑性质的PR\n\n如果是垃圾信息，请回答\"CLOSE\"\n如果是正常的PR（即使质量不高但有实际贡献意图），请回答\"KEEP\"\n\n只需回答\"CLOSE\"或\"KEEP\"，不需要其他解释。"
   },
@@ -10,11 +10,6 @@
   "responses": {
     "issue_closed": "🤖 此Issue已被自动检测为重复内容或垃圾信息，将被关闭并锁定。请仔细阅读[项目README]({readme_url})，如果您认为这是误判，请联系仓库维护者。",
     "pr_closed": "🤖 此Pull Request已被自动检测为垃圾信息，将被关闭。如果您认为这是误判，请联系仓库维护者。"
-  },
-  
-  "labels": {
-    "bug": "bug",
-    "enhancement": "enhancement"
   },
   
   "ai_settings": {

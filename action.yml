@@ -14,6 +14,10 @@ inputs:
     description: 'AI model to use for spam detection'
     required: false
     default: 'openai/gpt-4o'
+  labels:
+    description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement")'
+    required: false
+    default: 'bug,enhancement'
 
 runs:
   using: 'composite'
@@ -37,3 +41,4 @@ runs:
       env:
         INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
         INPUT_AI-MODEL: ${{ inputs.ai-model }}
+        INPUT_LABELS: ${{ inputs.labels }}

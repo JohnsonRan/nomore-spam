@@ -1,6 +1,6 @@
-# NoMore Spam GitHub Action
+# NoMore Spam
 
-基于AI的GitHub Action工具，自动检测并关闭垃圾Issue/PR，为有效Issue智能分类打标签。
+基于AI的GitHub Actions工具，自动检测并关闭垃圾Issue/PR，为有效Issue智能分类打标签。
 
 ## 功能特性
 
@@ -35,12 +35,14 @@ permissions:
 jobs:
   spam-detection:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Detect and close spam
         uses: JohnsonRan/nomore-spam@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           ai-model: 'openai/gpt-4o'
+          labels: 'bug,enhancement'
 ```
 
 ### 2. 自定义配置
@@ -49,8 +51,9 @@ jobs:
 
 | 参数 | 描述 | 必需 | 默认值 |
 |------|------|------|--------|
-| `github-token` | - | 是 | `${{ github.token }}` |
+| `github-token` | - | 是 | `${{ secrets.GITHUB_TOKEN }}` |
 | `ai-model` | 模型名称 | 否 | `openai/gpt-4o` |
+| `labels` | 标签列表 | 否 | `bug,enhancement` |
 
 ## 检测逻辑
 
@@ -67,9 +70,9 @@ jobs:
    - 关闭Issue
    - 锁定Issue（标记为spam）
 4. **智能分类**: 如果Issue通过垃圾检测，系统会进一步：
-   - 分析Issue的类型和内容
-   - 自动分类为：`bug`（错误报告）、`enhancement`（功能请求）或其他
-   - 为Issue添加相应的标签，便于项目管理
+   - 根据 `labels` 参数中指定的标签列表进行分析
+   - AI动态判断Issue属于哪种类型（如bug、enhancement、invalid等）
+   - 自动为Issue添加最匹配的标签，便于项目管理
 
 ### Pull Request检测
 
@@ -96,22 +99,14 @@ jobs:
 
 ## 自动标签功能
 
-### 支持的标签类型
+### 灵活的标签配置
 
-- 🐛 **bug**: 自动为错误报告、程序崩溃、异常行为等Issue添加
-- ✨ **enhancement**: 自动为功能请求、改进建议等Issue添加
+通过 `labels` 参数，你可以自定义AI用于分类的标签列表：
 
-### 标签配置
-
-可以在`config.json`中自定义标签名称：
-
-```json
-{
-  "labels": {
-    "bug": "bug",
-    "enhancement": "enhancement"
-  }
-}
+```yaml
+- name: Detect and close spam
+  uses: JohnsonRan/nomore-spam@main
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    labels: 'bug,enhancement,invalid,question,documentation'
 ```
-
-Action会智能分析Issue内容，识别其类型并自动添加相应标签，帮助维护者更好地管理和优先处理Issue。

@@ -50,6 +50,10 @@ async function run() {
     // 获取输入参数
     const token = core.getInput('github-token') || process.env.INPUT_GITHUB_TOKEN || process.env.GITHUB_TOKEN;
     const aiModel = core.getInput('ai-model') || process.env.INPUT_AI_MODEL || 'openai/gpt-4o';
+    const labelsInput = core.getInput('labels') || process.env.INPUT_LABELS || 'bug,enhancement';
+    
+    // 解析标签列表
+    const labelsList = labelsInput.split(',').map(label => label.trim()).filter(label => label.length > 0);
     
     // 初始化GitHub客户端
     const octokit = github.getOctokit(token);
@@ -69,7 +73,7 @@ async function run() {
     
     // 根据事件类型处理
     if (context.eventName === 'issues' && context.payload.action === 'opened') {
-      await handleNewIssue(octokit, openai, context, owner, repo, aiModel, config);
+      await handleNewIssue(octokit, openai, context, owner, repo, aiModel, config, labelsList);
     } else if (context.eventName === 'pull_request' && context.payload.action === 'opened') {
       await handleNewPR(octokit, openai, context, owner, repo, aiModel, config);
     } else {
@@ -81,7 +85,7 @@ async function run() {
   }
 }
 
-async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, config) {
+async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, config, labelsList) {
   try {
     const issue = context.payload.issue;
     const issueTitle = issue.title;
@@ -149,7 +153,7 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       core.info('Issue #' + issue.number + ' 通过检查，保持开放状态');
       
       // 对于通过检查的Issue，进行分类并添加标签
-      await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config);
+      await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList);
     }
     
   } catch (error) {
@@ -158,14 +162,18 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
   }
 }
 
-async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config) {
+async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList) {
   try {
     core.info('开始对Issue进行分类: #' + issue.number);
+    core.info('可用标签: ' + labelsList.join(', '));
     
-    // 构建分类提示
+    // 使用配置文件中的分类提示模板
+    const labelsOptions = labelsList.map(l => l.toUpperCase()).join('、');
+    
     const classificationPrompt = config.prompts.issue_classification
       .replace('{issue_title}', issueTitle)
-      .replace('{issue_body}', issueBody);
+      .replace('{issue_body}', issueBody)
+      .replace('{labels_options}', labelsOptions);
     
     // 调用AI进行分类
     let classification;
@@ -173,31 +181,28 @@ async function classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueT
       classification = await callAI(openai, aiModel, classificationPrompt, config, 'Issue分类');
     } catch (aiError) {
       core.error('AI分类调用失败，跳过分类: ' + aiError.message);
-      return; // 分类失败不影响主流程
+      return;
     }
     
-    // 根据分类结果添加标签
-    let labelToAdd = null;
-    if (classification === 'BUG') {
-      labelToAdd = config.labels.bug;
-    } else if (classification === 'ENHANCEMENT') {
-      labelToAdd = config.labels.enhancement;
-    }
+    // 查找匹配的标签
+    const matchedLabel = labelsList.find(label => 
+      classification.toUpperCase() === label.toUpperCase()
+    );
     
-    if (labelToAdd) {
+    if (matchedLabel) {
       try {
         await octokit.rest.issues.addLabels({
           owner,
           repo,
           issue_number: issue.number,
-          labels: [labelToAdd]
+          labels: [matchedLabel]
         });
-        core.info('已为Issue #' + issue.number + ' 添加标签: ' + labelToAdd);
+        core.info('已为Issue #' + issue.number + ' 添加标签: ' + matchedLabel);
       } catch (labelError) {
         core.warning('添加标签失败: ' + labelError.message);
       }
     } else {
-      core.info('Issue #' + issue.number + ' 分类为OTHER，不添加特定标签');
+      core.info('Issue #' + issue.number + ' 分类结果不匹配任何预设标签: ' + classification);
     }
     
   } catch (error) {
