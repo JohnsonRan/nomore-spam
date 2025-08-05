@@ -69,7 +69,7 @@ function detectTemplate(issueTitle, issueBody) {
   // 检查标题是否有模板前缀
   for (const prefix of TEMPLATE_PATTERNS.TITLE_PREFIXES) {
     if (issueTitle.includes(prefix)) {
-      result.indicators.push(`标题包含模板前缀: ${prefix}`);
+      result.indicators.push(`Title prefix: ${prefix}`);
       indicatorCount += 2; // 标题前缀权重更高
       break;
     }
@@ -79,7 +79,7 @@ function detectTemplate(issueTitle, issueBody) {
   for (const pattern of TEMPLATE_PATTERNS.TEMPLATE_INDICATORS) {
     const matches = issueBody.match(new RegExp(pattern, 'gm'));
     if (matches && matches.length > 0) {
-      result.indicators.push(`发现模板模式: ${pattern.source} (${matches.length}次)`);
+      result.indicators.push(`Template pattern: ${pattern.source} (${matches.length}x)`);
       indicatorCount += matches.length;
     }
   }
@@ -94,7 +94,7 @@ function detectTemplate(issueTitle, issueBody) {
   }
   
   if (fieldCount >= 2) {
-    result.indicators.push(`发现${fieldCount}个常见模板字段`);
+    result.indicators.push(`Found ${fieldCount} template fields`);
     indicatorCount += fieldCount;
   }
 
@@ -231,15 +231,15 @@ function isEmptyContent(content) {
 function generateAnalysisReport(templateInfo, contentInfo) {
   const report = [];
   
-  report.push('📋 模板检测报告:');
-  report.push(`- 使用模板: ${templateInfo.hasTemplate ? '是' : '否'}`);
+  report.push('Template Analysis:');
+  report.push(`- Has template: ${templateInfo.hasTemplate ? 'Yes' : 'No'}`);
   
   if (templateInfo.hasTemplate) {
-    report.push(`- 模板类型: ${templateInfo.templateType}`);
-    report.push(`- 置信度: ${templateInfo.confidence.toFixed(1)}%`);
-    report.push(`- 检测指标: ${templateInfo.indicators.join(', ')}`);
-    report.push(`- 有效内容段落: ${contentInfo.validSections}/${contentInfo.totalSections}`);
-    report.push(`- 内容完整性: ${contentInfo.isEmpty ? '空' : '有内容'}`);
+    report.push(`- Type: ${templateInfo.templateType}`);
+    report.push(`- Confidence: ${templateInfo.confidence.toFixed(1)}%`);
+    report.push(`- Indicators: ${templateInfo.indicators.join(', ')}`);
+    report.push(`- Valid sections: ${contentInfo.validSections}/${contentInfo.totalSections}`);
+    report.push(`- Content: ${contentInfo.isEmpty ? 'Empty' : 'Has content'}`);
   }
 
   return report.join('\n');
@@ -268,13 +268,13 @@ function analyzeIssueQuality(issueTitle, issueBody) {
   // 质量评分逻辑
   let score = 50; // 基础分
 
-  // 标题质量
+    // 标题质量
   if (issueTitle && issueTitle.trim().length > 10) {
     score += 15;
-    analysis.quality.reasons.push('标题描述充分');
+    analysis.quality.reasons.push('Good title length');
   } else {
     score -= 10;
-    analysis.quality.reasons.push('标题过于简短');
+    analysis.quality.reasons.push('Title too short');
   }
 
   // 内容质量
@@ -282,25 +282,25 @@ function analyzeIssueQuality(issueTitle, issueBody) {
     // 使用了模板
     if (!contentInfo.isEmpty && contentInfo.validSections >= 2) {
       score += 25;
-      analysis.quality.reasons.push('使用模板且填写完整');
+      analysis.quality.reasons.push('Template used and well filled');
     } else if (!contentInfo.isEmpty) {
       score += 10;
-      analysis.quality.reasons.push('使用模板但填写不完整');
+      analysis.quality.reasons.push('Template used but incomplete');
     } else {
       score -= 20;
-      analysis.quality.reasons.push('使用模板但内容为空');
+      analysis.quality.reasons.push('Template used but empty');
     }
   } else {
     // 没有使用模板
     if (issueBody && issueBody.trim().length > 50) {
       score += 20;
-      analysis.quality.reasons.push('自由描述且内容充分');
+      analysis.quality.reasons.push('Good free-form description');
     } else if (issueBody && issueBody.trim().length > 10) {
       score += 5;
-      analysis.quality.reasons.push('自由描述但内容较少');
+      analysis.quality.reasons.push('Brief free-form description');
     } else {
       score -= 25;
-      analysis.quality.reasons.push('内容过于简短或为空');
+      analysis.quality.reasons.push('Too short or empty content');
     }
   }
 

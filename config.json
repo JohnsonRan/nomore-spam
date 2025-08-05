@@ -1,10 +1,10 @@
 {
   "prompts": {
-    "issue_detection": "请分析以下GitHub Issue应该如何处理：\n\n仓库README内容：\n{readme_content}\n\nIssue标题：{issue_title}\nIssue内容：{issue_body}\n\n模板分析：{template_analysis}\n\n请判断：\n1. 该Issue内容是否已经在README中提到或解决？\n2. 该Issue是否为垃圾信息（spam）？\n3. 该Issue描述是否过于简单、缺乏有效信息？\n\n请回答以下选项之一：\n- \"CLOSE\"：如果Issue内容已在README中明确提到或解决，或者明显是垃圾信息、无意义内容或恶意内容\n- \"UNCLEAR\"：如果Issue内容过于简单、缺乏有效信息，需要用户补充更多细节\n- \"KEEP\"：如果Issue描述清楚且有效\n\n只需回答\"CLOSE\"、\"UNCLEAR\"或\"KEEP\"，不需要其他解释。",
+    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n\nRespond ONLY with:\n- \"CLOSE\" - if covered in README, spam, or meaningless\n- \"UNCLEAR\" - if too vague, needs more details  \n- \"KEEP\" - if clear and valid",
     
-    "issue_classification": "请分析以下GitHub Issue的类型：\n\nIssue标题：{issue_title}\nIssue内容（已提取用户填写内容）：{user_content}\n\n请判断这个Issue最适合以下哪个标签：{labels_options}\n\n只需回答标签名称（如：BUG、ENHANCEMENT等），不需要其他解释。",
+    "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT).",
     
-    "pr_detection": "请分析以下GitHub PR是否为垃圾信息：\n\n标题：{pr_title}\n描述：{pr_body}\n文件变更：\n{file_changes}\n\n垃圾PR特征：无意义内容、恶意代码、随机字符、广告、与项目无关、测试性质。\n\n如果是垃圾信息，请回答\"CLOSE\"\n如果是正常的PR（即使质量不高但有实际贡献意图），请回答\"KEEP\"\n\n只需回答\"CLOSE\"或\"KEEP\"，不需要其他解释。"
+    "pr_detection": "Analyze this GitHub PR for spam:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nSpam indicators: meaningless content, malicious code, random chars, ads, unrelated, test-only.\n\nRespond ONLY with:\n- \"CLOSE\" - if spam\n- \"KEEP\" - if legitimate (even if low quality)"
   },
   
   "responses": {
