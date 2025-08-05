@@ -10,6 +10,7 @@
 - 🔒 **自动处理**: 自动关闭并锁定检测到的垃圾内容
 - 🏷️ **智能标签**: 为通过检测的Issue自动分类并添加相应标签
 - 💬 **友好提示**: 为被关闭的Issue/PR添加说明评论
+- 🔒 **黑名单**: 支持将特定用户加入黑名单，自动关闭其创建的Issue/PR
 
 ## 使用方法
 
@@ -54,6 +55,40 @@ jobs:
 | `labels` | 标签列表 | 否 | `bug,enhancement,question` |
 | `analyze-file-changes` | 是否分析PR文件变更内容 | 否 | `true` |
 | `max-analysis-depth` | 分析深度：`light`(3文件/3行)、`normal`(5文件/5行)、`deep`(10文件/10行) | 否 | `normal` |
+| `blacklist` | 黑名单用户列表（逗号分隔的GitHub用户名） | 否 | `''` |
+
+#### 完整配置示例
+
+```yaml
+name: NoMore Spam
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  models: read
+
+jobs:
+  spam-detection:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Detect and close spam
+        uses: JohnsonRan/nomore-spam@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ai-model: 'openai/gpt-4o'
+          labels: 'bug,enhancement,question,documentation,feature'
+          analyze-file-changes: 'true'
+          max-analysis-depth: 'normal'
+          blacklist: ${{ secrets.BLACKLIST }}
+```
 
 ## 检测逻辑
 
@@ -118,3 +153,26 @@ jobs:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     labels: 'bug,enhancement,question,documentation'
 ```
+
+## 黑名单功能
+
+1. 在你的仓库中，进入 `Settings` → `Secrets and variables` → `Actions`
+2. 点击 `New repository secret`
+3. Name: `BLACKLIST_USERS`
+4. Secret: `spammer1,spammer2,baduser` （用逗号分隔的用户名）
+5. 在工作流中使用：
+
+```yaml
+- name: Detect and close spam
+  uses: JohnsonRan/nomore-spam@main
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    blacklist: ${{ secrets.BLACKLIST }}
+```
+
+### 黑名单行为
+
+- 黑名单中的用户创建的Issue/PR会被**立即关闭**，无需经过AI检测
+- Issue会被自动锁定并标记为"not planned"
+- 会添加说明评论告知关闭原因
+- 用户名比较时**不区分大小写**

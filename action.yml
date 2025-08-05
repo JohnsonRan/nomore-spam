@@ -26,6 +26,10 @@ inputs:
     description: 'Analysis depth: light=3 files/3 lines, normal=5 files/5 lines, deep=10 files/10 lines'
     required: false
     default: 'normal'
+  blacklist:
+    description: 'Comma-separated list of GitHub usernames to be automatically closed without AI analysis (e.g., "spammer1,spammer2")'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -52,3 +56,4 @@ runs:
         INPUT_LABELS: ${{ inputs.labels }}
         INPUT_ANALYZE-FILE-CHANGES: ${{ inputs.analyze-file-changes }}
         INPUT_MAX-ANALYSIS-DEPTH: ${{ inputs.max-analysis-depth }}
+        INPUT_BLACKLIST: ${{ inputs.blacklist }}
