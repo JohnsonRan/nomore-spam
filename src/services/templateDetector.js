@@ -98,9 +98,16 @@ function detectTemplate(issueTitle, issueBody) {
     indicatorCount += fieldCount;
   }
 
-  // 计算置信度
-  result.confidence = Math.min(100, (indicatorCount / Math.max(totalLines / 5, 1)) * 100);
-  result.hasTemplate = result.confidence > 30; // 30%以上置信度认为使用了模板
+  // 优化置信度计算
+  // 考虑多个因素：指标数量、内容长度、指标密度
+  const minLines = Math.max(totalLines, 3); // 至少3行来避免过高置信度
+  const maxExpectedIndicators = Math.max(minLines / 3, 2); // 期望的指标数量
+  const densityScore = Math.min(indicatorCount / maxExpectedIndicators, 1.5); // 限制最大密度
+  const lengthFactor = Math.min(totalLines / 10, 1); // 内容长度因子，10行以上为1
+  
+  // 综合计算置信度
+  result.confidence = Math.min(85, densityScore * lengthFactor * 100);
+  result.hasTemplate = result.confidence > 25;
 
   // 判断模板类型
   if (result.hasTemplate) {
@@ -268,7 +275,7 @@ function analyzeIssueQuality(issueTitle, issueBody) {
   // 质量评分逻辑
   let score = 50; // 基础分
 
-    // 标题质量
+  // 标题质量
   if (issueTitle && issueTitle.trim().length > 10) {
     score += 15;
     analysis.quality.reasons.push('Good title length');
