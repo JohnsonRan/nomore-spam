@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const { logMessage } = require('../utils/helpers');
 const { callAI } = require('../services/ai');
-const { addLabels, getReadmeContent } = require('../services/github');
+const { addLabels, getReadmeContent, getPinnedIssuesContent } = require('../services/github');
 const { analyzeIssueQuality, generateAnalysisReport } = require('../services/templateDetector');
 const { 
   handleSpamIssue, 
@@ -46,6 +46,14 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       core.warning(config.logging.readme_not_found);
     }
 
+    // 获取置顶Issues内容
+    const pinnedIssuesContent = await getPinnedIssuesContent(octokit, owner, repo, config);
+    if (pinnedIssuesContent) {
+      core.info(config.logging.pinned_issues_found);
+    } else {
+      core.warning(config.logging.pinned_issues_not_found);
+    }
+
     // 智能分析Issue内容质量和模板使用情况
     const qualityAnalysis = analyzeIssueQuality(issueTitle, issueBody);
     const templateAnalysisReport = generateAnalysisReport(
@@ -80,6 +88,7 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     // 构建AI检查提示，包含模板分析信息
     const prompt = config.prompts.issue_detection
       .replace('{readme_content}', readmeContent)
+      .replace('{pinned_issues_content}', pinnedIssuesContent)
       .replace('{issue_title}', issueTitle)
       .replace('{issue_body}', issueBody)
       .replace('{template_analysis}', templateAnalysisReport);

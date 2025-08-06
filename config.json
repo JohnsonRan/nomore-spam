@@ -1,6 +1,6 @@
 {
   "prompts": {
-    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary (e.g., asking how to install, basic usage already documented)?\n\nRespond ONLY with:\n- \"CLOSE\" - if covered in README, spam, or meaningless\n- \"UNCLEAR\" - if too vague, needs more details  \n- \"BASIC\" - if too basic/elementary for the project level\n- \"KEEP\" - if clear and valid",
+    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\n\nPinned Issues: {pinned_issues_content}\n\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README or pinned issues?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary - Even if the description is detailed and complete, if the core question is about basic usage, installation, or concepts that can be easily found through documentation or search engines, it should be considered basic.\n\nRespond ONLY with:\n- \"CLOSE\" - if covered in README/pinned issues, spam, or meaningless\n- \"UNCLEAR\" - if too vague, needs more details  \n- \"BASIC\" - if too basic/elementary for the project level (regardless of description quality)\n- \"KEEP\" - if clear and valid",
     
     "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT).",
     
@@ -20,6 +20,8 @@
     "target_repo": "目标仓库: {owner}/{repo}",
     "readme_found": "成功获取README.md文件",
     "readme_not_found": "未找到README.md文件，将跳过重复内容检查",
+    "pinned_issues_found": "成功获取置顶Issues内容",
+    "pinned_issues_not_found": "未找到置顶Issues，将跳过置顶Issues检查",
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
     "issue_unclear_log": "Issue #{number} 被标记为描述不清，已添加补充信息提示",
     "issue_basic_log": "Issue #{number} 被检测为基础问题，已关闭并锁定",
@@ -59,6 +61,7 @@
     "classification_failed": "AI分类调用失败，跳过分类: {error}",
     "classification_process_error": "Issue分类过程出错: {error}",
     "readme_fetch_failed": "获取README文件失败",
+    "pinned_issues_fetch_failed": "获取置顶Issues失败",
     "issue_comment_failed": "添加Issue评论失败",
     "issue_unclear_comment_failed": "添加Issue描述不清提示评论失败",
     "issue_close_failed": "关闭Issue失败",
