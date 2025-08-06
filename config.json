@@ -1,6 +1,6 @@
 {
   "prompts": {
-    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n\nRespond ONLY with:\n- \"CLOSE\" - if covered in README, spam, or meaningless\n- \"UNCLEAR\" - if too vague, needs more details  \n- \"KEEP\" - if clear and valid",
+    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary (e.g., asking how to install, basic usage already documented)?\n\nRespond ONLY with:\n- \"CLOSE\" - if covered in README, spam, or meaningless\n- \"UNCLEAR\" - if too vague, needs more details  \n- \"BASIC\" - if too basic/elementary for the project level\n- \"KEEP\" - if clear and valid",
     
     "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT).",
     
@@ -9,6 +9,7 @@
   
   "responses": {
     "issue_closed": "🤖 此Issue已被检测为重复内容或垃圾信息，将被关闭并锁定。请仔细阅读[项目README]({readme_url})，如果您认为这是误判，请联系仓库维护者。",
+    "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
     "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
     "pr_closed": "🤖 此Pull Request已被检测为垃圾信息，将被关闭。如果您认为这是误判，请联系仓库维护者。"
   },
@@ -21,6 +22,7 @@
     "readme_not_found": "未找到README.md文件，将跳过重复内容检查",
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
     "issue_unclear_log": "Issue #{number} 被标记为描述不清，已添加补充信息提示",
+    "issue_basic_log": "Issue #{number} 被检测为基础问题，已关闭并锁定",
     "issue_passed_log": "Issue #{number} 通过检查，保持开启状态",
     "pr_closed_log": "PR #{number} 已被关闭并锁定",
     "pr_passed_log": "PR #{number} 通过检查，保持开启状态",

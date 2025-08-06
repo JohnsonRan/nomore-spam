@@ -1,8 +1,14 @@
 const core = require('@actions/core');
 const { logMessage } = require('../utils/helpers');
 const { callAI } = require('../services/ai');
-const { closeIssue, addComment, addLabels, getReadmeContent } = require('../services/github');
+const { addLabels, getReadmeContent } = require('../services/github');
 const { analyzeIssueQuality, generateAnalysisReport } = require('../services/templateDetector');
+const { 
+  handleSpamIssue, 
+  handleBasicIssue, 
+  handleUnclearIssue, 
+  handleBlacklistedUser 
+} = require('./issueProcessor');
 
 /**
  * 处理新创建的Issue
@@ -83,8 +89,11 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     
     if (decision === 'CLOSE') {
       await handleSpamIssue(octokit, owner, repo, issue, config);
+    } else if (decision === 'BASIC') {
+      await handleBasicIssue(octokit, owner, repo, issue, config);
     } else if (decision === 'UNCLEAR') {
-      await handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
+      await handleUnclearIssue(octokit, owner, repo, issue, config);
+      await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
     } else {
       await handleValidIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
     }
@@ -93,63 +102,6 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     core.error(logMessage(config.logging.issue_process_error, { error: error.message }));
     throw error;
   }
-}
-
-/**
- * 处理黑名单用户的Issue
- */
-async function handleBlacklistedUser(octokit, owner, repo, issue, config) {
-  const readmeUrl = `https://github.com/${owner}/${repo}#readme`;
-  
-  await closeIssue(
-    octokit, 
-    owner, 
-    repo, 
-    issue.number, 
-    config.responses.issue_closed.replace('{readme_url}', readmeUrl),
-    config,
-    true
-  );
-  
-  core.info(logMessage(config.logging.issue_closed_log, { number: issue.number }));
-}
-
-/**
- * 处理垃圾Issue
- */
-async function handleSpamIssue(octokit, owner, repo, issue, config) {
-  const readmeUrl = `https://github.com/${owner}/${repo}#readme`;
-  
-  await closeIssue(
-    octokit, 
-    owner, 
-    repo, 
-    issue.number, 
-    config.responses.issue_closed.replace('{readme_url}', readmeUrl),
-    config,
-    true
-  );
-  
-  core.info(logMessage(config.logging.issue_closed_log, { number: issue.number }));
-}
-
-/**
- * 处理描述不清的Issue
- */
-async function handleUnclearIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis) {
-  await addComment(
-    octokit, 
-    owner, 
-    repo, 
-    issue.number, 
-    config.responses.issue_unclear,
-    config.logging.issue_unclear_comment_failed
-  );
-  
-  core.info(logMessage(config.logging.issue_unclear_log, { number: issue.number }));
-  
-  // 对于描述不清的Issue，也进行分类并添加标签
-  await classifyAndLabelIssue(octokit, openai, owner, repo, issue, issueTitle, issueBody, aiModel, config, labelsList, qualityAnalysis);
 }
 
 /**
