@@ -1,6 +1,6 @@
 name: 'NoMore Spam'
 description: 'Automatically detect and close spam issues and PRs using AI'
-author: 'GitHub'
+author: 'JohnsonRan'
 branding:
   icon: 'shield'
   color: 'red'
