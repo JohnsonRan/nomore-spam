@@ -185,12 +185,17 @@ async function getRealPinnedIssues(octokit, owner, repo, config) {
         repository(owner: $owner, name: $repo) {
           pinnedIssues(first: 10) {
             nodes {
-              title
-              body
-              number
-              url
-              createdAt
-              state
+              issue {
+                title
+                body
+                number
+                url
+                createdAt
+                state
+              }
+              pinnedBy {
+                login
+              }
             }
           }
         }
@@ -202,24 +207,37 @@ async function getRealPinnedIssues(octokit, owner, repo, config) {
       config.logging.pinned_issues_fetch_failed
     );
 
-    return response?.repository?.pinnedIssues?.nodes || [];
+    const pinnedIssues = response?.repository?.pinnedIssues?.nodes || [];
+    
+    // 将PinnedIssue对象转换为Issue对象
+    return pinnedIssues.map(pinnedIssue => ({
+      ...pinnedIssue.issue,
+      pinnedBy: pinnedIssue.pinnedBy
+    }));
   } catch (error) {
+    console.warn(`获取置顶Issues失败 (${owner}/${repo}):`, error.message);
     return [];
   }
 }
 
 /**
- * 格式化置顶Issues内容
+ * 格式化置顶Issues内容 - 解耦的纯函数
  * @param {Array} pinnedIssues 置顶Issues数组
  * @returns {string} 格式化后的内容
  */
 function formatPinnedIssuesContent(pinnedIssues) {
-  if (pinnedIssues.length === 0) {
+  if (!Array.isArray(pinnedIssues) || pinnedIssues.length === 0) {
     return '';
   }
 
   return pinnedIssues.map(issue => {
-    return `## ${issue.title}\n${issue.body || '(无描述)'}\n---`;
+    const title = issue.title || '(无标题)';
+    const body = issue.body || '(无描述)';
+    const number = issue.number || '未知';
+    const state = issue.state === 'CLOSED' ? '已关闭' : '开启';
+    const pinnedBy = issue.pinnedBy?.login || '未知';
+    
+    return `## ${title} (#${number}) - ${state}\n置顶者: ${pinnedBy}\n\n${body}\n\n---`;
   }).join('\n\n');
 }
 
@@ -233,13 +251,24 @@ function formatPinnedIssuesContent(pinnedIssues) {
  */
 async function getPinnedIssuesContent(octokit, owner, repo, config) {
   try {
+    console.log(`正在获取仓库置顶Issues: ${owner}/${repo}`);
+    
     // 使用GraphQL API获取真正的置顶Issues
     const pinnedIssues = await getRealPinnedIssues(octokit, owner, repo, config);
     
-    // 格式化并返回内容
+    console.log(`找到 ${pinnedIssues.length} 个置顶Issues`);
+    
+    if (pinnedIssues.length > 0) {
+      pinnedIssues.forEach((issue, index) => {
+        console.log(`  ${index + 1}. #${issue.number}: ${issue.title} (${issue.state})`);
+      });
+    }
+    
+    // 格式化并返回内容 - 使用解耦的纯函数
     return formatPinnedIssuesContent(pinnedIssues);
     
   } catch (error) {
+    console.error(`获取置顶Issues过程中出错 (${owner}/${repo}):`, error.message);
     return '';
   }
 }
