@@ -2,7 +2,7 @@
   "prompts": {
     "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\n\nPinned Issues: {pinned_issues_content}\n\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README or pinned issues?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary - Even if the description is detailed and complete, if the core question is about basic usage, installation, or concepts that can be easily found through documentation or search engines, it should be considered basic.\n\nRespond ONLY with:\n- `CLOSE` - if covered in README/pinned issues, spam, or meaningless\n- `UNCLEAR` - if too vague, needs more details  \n- `BASIC` - if too basic/elementary for the project level (regardless of description quality)\n- `KEEP` - if clear and valid",
     
-    "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond ONLY with:\n- `BUG` - for bug reports\n- `ENHANCEMENT` - for feature requests\n- `QUESTION` - for questions or discussions\n\nChoose the most appropriate label from the available options.",
+    "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT).",
     
     "pr_detection": "Analyze this GitHub PR for spam:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nSpam indicators: meaningless content, malicious code, random chars, ads, unrelated, test-only.\n\nRespond ONLY with:\n- `CLOSE` - if spam\n- `KEEP` - if legitimate (even if low quality)"
   },

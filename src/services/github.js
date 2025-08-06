@@ -171,6 +171,59 @@ async function getReadmeContent(octokit, owner, repo, config) {
 }
 
 /**
+ * 使用GraphQL API获取仓库真正的置顶Issues
+ * @param {Object} octokit GitHub API客户端
+ * @param {string} owner 仓库所有者
+ * @param {string} repo 仓库名
+ * @param {Object} config 配置对象
+ * @returns {Promise<Array>} 置顶Issues数组
+ */
+async function getRealPinnedIssues(octokit, owner, repo, config) {
+  try {
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          pinnedIssues(first: 10) {
+            nodes {
+              title
+              body
+              number
+              url
+              createdAt
+              state
+            }
+          }
+        }
+      }
+    `;
+
+    const response = await handleApiCall(
+      () => octokit.graphql(query, { owner, repo }),
+      config.logging.pinned_issues_fetch_failed
+    );
+
+    return response?.repository?.pinnedIssues?.nodes || [];
+  } catch (error) {
+    return [];
+  }
+}
+
+/**
+ * 格式化置顶Issues内容
+ * @param {Array} pinnedIssues 置顶Issues数组
+ * @returns {string} 格式化后的内容
+ */
+function formatPinnedIssuesContent(pinnedIssues) {
+  if (pinnedIssues.length === 0) {
+    return '';
+  }
+
+  return pinnedIssues.map(issue => {
+    return `## ${issue.title}\n${issue.body || '(无描述)'}\n---`;
+  }).join('\n\n');
+}
+
+/**
  * 获取仓库置顶Issues内容
  * @param {Object} octokit GitHub API客户端
  * @param {string} owner 仓库所有者
@@ -180,47 +233,12 @@ async function getReadmeContent(octokit, owner, repo, config) {
  */
 async function getPinnedIssuesContent(octokit, owner, repo, config) {
   try {
-    // 获取置顶的Issues（通过labels或者前几个固定的Issues来识别）
-    const issuesResponse = await handleApiCall(
-      () => octokit.rest.issues.listForRepo({
-        owner,
-        repo,
-        state: 'open',
-        sort: 'created',
-        direction: 'asc',
-        per_page: 5
-      }),
-      config.logging.pinned_issues_fetch_failed
-    );
-
-    if (!issuesResponse || !issuesResponse.data || !Array.isArray(issuesResponse.data)) {
-      return '';
-    }
-
-    // 筛选出置顶的Issues（可以通过标签或者其他条件）
-    const pinnedIssues = issuesResponse.data.filter(issue => {
-      // 检查是否有置顶相关的标签
-      const hasPin = issue.labels.some(label => 
-        ['pinned', 'pin', '置顶', 'important', 'notice', 'announcement'].includes(label.name.toLowerCase())
-      );
-      
-      // 或者检查Issue标题是否包含置顶关键词
-      const titlePin = /(?:置顶|pinned?|重要|公告|notice|announcement|必读)/i.test(issue.title);
-      
-      return hasPin || titlePin;
-    });
-
-    // 如果没有找到明确的置顶Issues，直接返回空字符串
-    if (pinnedIssues.length === 0) {
-      return '';
-    }
-
-    // 格式化置顶Issues内容
-    const formattedContent = pinnedIssues.map(issue => {
-      return `## ${issue.title}\n${issue.body || '(无描述)'}\n---`;
-    }).join('\n\n');
-
-    return formattedContent;
+    // 使用GraphQL API获取真正的置顶Issues
+    const pinnedIssues = await getRealPinnedIssues(octokit, owner, repo, config);
+    
+    // 格式化并返回内容
+    return formatPinnedIssuesContent(pinnedIssues);
+    
   } catch (error) {
     return '';
   }
