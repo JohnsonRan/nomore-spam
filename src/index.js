@@ -65,7 +65,7 @@ async function run() {
     // 根据事件类型处理
     if (context.eventName === 'issues' && context.payload.action === 'opened') {
       await handleNewIssue(octokit, openai, context, owner, repo, aiModel, config, labelsList, blacklistUsers);
-    } else if (context.eventName === 'pull_request' && context.payload.action === 'opened') {
+    } else if ((context.eventName === 'pull_request_target') && context.payload.action === 'opened') {
       await handleNewPR(octokit, openai, context, owner, repo, aiModel, config, blacklistUsers);
     } else {
       core.info(config.logging.event_no_match);
