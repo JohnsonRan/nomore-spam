@@ -6,8 +6,8 @@
 - 🤖 **AI驱动检测**: 使用GitHub Models API进行智能垃圾内容检测
 - 📝 **模板智能处理**: 自动识别GitHub Issue模板，提取用户实际填写内容，避免AI被模板结构误导
 - 🔍 **Issue检查**: 检测新Issue是否已在README中提到或为垃圾信息
-- 🧠 **README智能回答**: 对于README相关问题，自动生成基于README内容的简洁回答并关闭Issue
-- 🔄 **PR检查**: 检测新Pull Request是否为垃圾信息
+- 🧠 **README智能回答**: 对于README相关问题，自动生成基于README内容的简洁回答
+- 🔄 **PR检查**: 检测新Pull Request是否为垃圾信息及Commit是否符合规范
 - 🔒 **自动处理**: 自动关闭并锁定检测到的垃圾内容
 - 🏷️ **智能标签**: 为通过检测的Issue自动分类并添加相应标签
 - 💬 **友好提示**: 为被关闭的Issue/PR添加说明评论

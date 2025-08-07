@@ -78,7 +78,8 @@ class IssueActionService {
       issue.number, 
       this.config.responses.issue_readme_covered,
       this.config,
-      false  // 不锁定，允许继续讨论
+      false,  // 不锁定，允许继续讨论
+      'completed'
     );
     
     core.info(logMessage(this.config.logging.issue_readme_covered_log, { number: issue.number }));

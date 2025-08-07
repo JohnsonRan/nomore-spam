@@ -53,9 +53,10 @@ async function addLabels(octokit, owner, repo, issueNumber, labels, errorMessage
  * @param {string} comment 关闭评论
  * @param {Object} config 配置对象
  * @param {boolean} shouldLock 是否锁定Issue
+ * @param {string} stateReason 关闭原因
  * @returns {Promise<Array>} API调用结果数组
  */
-async function closeIssue(octokit, owner, repo, issueNumber, comment, config, shouldLock = true) {
+async function closeIssue(octokit, owner, repo, issueNumber, comment, config, shouldLock = true, stateReason = 'not_planned') {
   const calls = [
     {
       operation: () => octokit.rest.issues.createComment({
@@ -72,7 +73,7 @@ async function closeIssue(octokit, owner, repo, issueNumber, comment, config, sh
         repo,
         issue_number: issueNumber,
         state: 'closed',
-        state_reason: 'not_planned'
+        state_reason: stateReason
       }),
       errorMessage: config.logging.issue_close_failed
     }
