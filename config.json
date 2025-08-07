@@ -1,16 +1,22 @@
 {
   "prompts": {
-    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\n\nPinned Issues: {pinned_issues_content}\n\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README or pinned issues?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary - Even if the description is detailed and complete, if the core question is about basic usage, installation, or concepts that can be easily found through documentation or search engines, it should be considered basic.\n\nRespond ONLY with:\n- `CLOSE` - if covered in README/pinned issues, spam, or meaningless\n- `UNCLEAR` - if too vague, needs more details  \n- `BASIC` - if too basic/elementary for the project level (regardless of description quality)\n- `KEEP` - if clear and valid",
+    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\n\nPinned Issues: {pinned_issues_content}\n\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README or pinned issues?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary - Even if the description is detailed and complete, if the core question is about basic usage, installation, or concepts that can be easily found through documentation or search engines, it should be considered basic.\n\nRespond ONLY with:\n- `README_COVERED` - if already covered in README or pinned issues\n- `SPAM` - if spam or meaningless content\n- `UNCLEAR` - if too vague, needs more details  \n- `BASIC` - if too basic/elementary for the project level (regardless of description quality)\n- `KEEP` - if clear and valid",
     
     "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT).",
     
-    "pr_detection": "Analyze this GitHub PR for spam:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nSpam indicators: meaningless content, malicious code, random chars, ads, unrelated, test-only.\n\nRespond ONLY with:\n- `CLOSE` - if spam\n- `KEEP` - if legitimate (even if low quality)"
+    "pr_detection": "Analyze this GitHub PR for spam:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nSpam indicators: meaningless content, malicious code, random chars, ads, unrelated, test-only.\n\nRespond ONLY with:\n- `CLOSE` - if spam\n- `KEEP` - if legitimate (even if low quality)",
+    
+    "readme_relevance": "Analyze if this GitHub Issue is related to content in the README:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nIs this issue asking about something that is already explained or covered in the README?\n\nRespond ONLY with:\n- `RELATED` - if the issue is asking about content covered in README\n- `NOT_RELATED` - if the issue is not about README content",
+    
+    "readme_answer": "Based on the README content, provide a brief and direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nProvide a concise answer in Chinese. Focus on the key information and avoid lengthy explanations. If applicable, mention the relevant section in README."
   },
   
   "responses": {
-    "issue_closed": "🤖 此Issue已被检测为重复内容或垃圾信息，将被关闭并锁定。请仔细阅读[项目README]({readme_url})，如果您认为这是误判，请联系仓库维护者。",
+    "issue_spam": "🤖 此Issue已被检测为垃圾信息，将被关闭并锁定。如果您认为这是误判，请联系仓库维护者。",
+    "issue_readme_covered": "🤖 根据上述回答，此问题已得到解决，Issue将被关闭。如有其他疑问，请在此Issue中继续讨论。",
     "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
     "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
+    "readme_answer_prefix": "🤖 根据项目README的内容，我来为您解答这个问题：\n\n",
     "pr_closed": "🤖 此Pull Request已被检测为垃圾信息，将被关闭。如果您认为这是误判，请联系仓库维护者。"
   },
   
@@ -23,9 +29,14 @@
     "pinned_issues_found": "成功获取置顶Issues内容",
     "pinned_issues_not_found": "未找到置顶Issues，将跳过置顶Issues检查",
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
+    "issue_spam_log": "Issue #{number} 被检测为垃圾信息，已关闭并锁定",
+    "issue_readme_covered_log": "Issue #{number} 内容已在README中覆盖，已关闭但未锁定",
     "issue_unclear_log": "Issue #{number} 被标记为描述不清，已添加补充信息提示",
     "issue_basic_log": "Issue #{number} 被检测为基础问题，已关闭并锁定",
     "issue_passed_log": "Issue #{number} 通过检查，保持开启状态",
+    "readme_relevance_check": "检查Issue #{number} 与README的相关性",
+    "readme_answer_generated": "为Issue #{number} 生成基于README的回答",
+    "readme_answer_failed": "为Issue #{number} 生成README回答失败: {error}",
     "pr_closed_log": "PR #{number} 已被关闭并锁定",
     "pr_passed_log": "PR #{number} 通过检查，保持开启状态",
     "classification_start": "开始对Issue进行分类: #{number}",
@@ -77,7 +88,7 @@
     "analyze_file_changes": true,
     "max_files_to_analyze": 5,
     "max_patch_lines_per_file": 5,
-    "max_tokens": 20,
+    "max_tokens": 50,
     "temperature": 0.05
   },
   

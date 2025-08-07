@@ -11,19 +11,17 @@ const { closeIssue, addComment } = require('../services/github');
  * @param {Object} config 配置对象
  */
 async function handleSpamIssue(octokit, owner, repo, issue, config) {
-  const readmeUrl = `https://github.com/${owner}/${repo}#readme`;
-  
   await closeIssue(
     octokit, 
     owner, 
     repo, 
     issue.number, 
-    config.responses.issue_closed.replace('{readme_url}', readmeUrl),
+    config.responses.issue_spam,
     config,
-    true
+    true  // 锁定
   );
   
-  core.info(logMessage(config.logging.issue_closed_log, { number: issue.number }));
+  core.info(logMessage(config.logging.issue_spam_log, { number: issue.number }));
 }
 
 /**
