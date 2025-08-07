@@ -1,6 +1,6 @@
 const core = require('@actions/core');
-const { logMessage, handleApiCall, isValidCommitTitle } = require('../utils/helpers');
-const { callAI } = require('../services/ai');
+const { logMessage, handleApiCall } = require('../utils/helpers');
+const IssueAnalyzer = require('../services/issueAnalyzer');
 const { closePR } = require('../services/github');
 
 /**
@@ -18,16 +18,9 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
   try {
     const pr = context.payload.pull_request;
     const prTitle = pr.title;
-    const prBody = pr.body || '';
     const prAuthor = pr.user.login.toLowerCase();
     
     core.info(logMessage(config.logging.pr_check_start, { title: prTitle }));
-    
-    // 检查PR标题是否符合Commit规范
-    if (!isValidCommitTitle(prTitle)) {
-      await handleInvalidCommitPR(octokit, owner, repo, pr, config);
-      return;
-    }
     
     // 检查用户是否在黑名单中
     if (blacklistUsers.includes(prAuthor)) {
@@ -38,17 +31,22 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
     // 获取PR的文件变更
     const fileChanges = await analyzeFileChanges(octokit, owner, repo, pr, config);
     
-    // 构建AI检查提示
-    const prompt = config.prompts.pr_detection
-      .replace('{pr_title}', prTitle)
-      .replace('{pr_body}', prBody)
-      .replace('{file_changes}', fileChanges);
+    // 创建分析器实例
+    const analyzer = new IssueAnalyzer(openai, aiModel, config);
     
-    // 调用AI进行垃圾检测
-    const decision = await callAI(openai, aiModel, prompt, config, 'PR垃圾检测');
+    // 进行分层检测
+    const analysisResult = await analyzer.analyzePR(pr, fileChanges);
+    const decision = analysisResult.decision;
     
-    if (decision === 'CLOSE') {
+    if (decision === 'SPAM') {
       await handleSpamPR(octokit, owner, repo, pr, config);
+    } else if (decision === 'INVALID_COMMIT') {
+      await handleInvalidCommitPR(octokit, owner, repo, pr, config);
+    } else if (decision === 'MALICIOUS' || decision === 'TRIVIAL') {
+      await handleLowQualityPR(octokit, owner, repo, pr, config, decision);
+    } else if (decision === 'UNCLEAR') {
+      // 暂时保持开启，但可以添加评论要求澄清
+      core.info(`PR #{${pr.number}} 描述不够清晰，但暂时保持开启`);
     } else {
       core.info(logMessage(config.logging.pr_passed_log, { number: pr.number }));
     }
@@ -60,51 +58,67 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
 }
 
 /**
- * 处理黑名单用户的PR
+ * 通用PR关闭处理函数
+ * @param {Object} octokit GitHub API客户端
+ * @param {string} owner 仓库所有者
+ * @param {string} repo 仓库名
+ * @param {Object} pr PR对象
+ * @param {Object} config 配置对象
+ * @param {string} responseKey 响应消息键名
+ * @param {string} logKey 日志消息键名
  */
-async function handleBlacklistedPR(octokit, owner, repo, pr, config) {
+async function closePRWithType(octokit, owner, repo, pr, config, responseKey, logKey) {
   await closePR(
     octokit, 
     owner, 
     repo, 
     pr.number, 
-    config.responses.pr_closed,
+    config.responses[responseKey],
     config
   );
   
-  core.info(logMessage(config.logging.pr_closed_log, { number: pr.number }));
+  core.info(logMessage(config.logging[logKey], { number: pr.number }));
+}
+
+/**
+ * 处理低质量PR（恶意或无意义）
+ */
+async function handleLowQualityPR(octokit, owner, repo, pr, config, reason) {
+  const responseMap = {
+    'MALICIOUS': 'pr_malicious',
+    'TRIVIAL': 'pr_trivial'
+  };
+  
+  const logMap = {
+    'MALICIOUS': 'pr_malicious_log',
+    'TRIVIAL': 'pr_trivial_log'
+  };
+  
+  const responseKey = responseMap[reason] || 'pr_closed';
+  const logKey = logMap[reason] || 'pr_closed_log';
+  
+  await closePRWithType(octokit, owner, repo, pr, config, responseKey, logKey);
+}
+
+/**
+ * 处理黑名单用户的PR
+ */
+async function handleBlacklistedPR(octokit, owner, repo, pr, config) {
+  await closePRWithType(octokit, owner, repo, pr, config, 'pr_closed', 'pr_closed_log');
 }
 
 /**
  * 处理不符合Commit规范的PR
  */
 async function handleInvalidCommitPR(octokit, owner, repo, pr, config) {
-  await closePR(
-    octokit, 
-    owner, 
-    repo, 
-    pr.number, 
-    config.responses.pr_closed,
-    config
-  );
-  
-  core.info(logMessage(config.logging.pr_commit_rule_log, { number: pr.number }));
+  await closePRWithType(octokit, owner, repo, pr, config, 'pr_invalid_commit', 'pr_commit_rule_log');
 }
 
 /**
  * 处理垃圾PR
  */
 async function handleSpamPR(octokit, owner, repo, pr, config) {
-  await closePR(
-    octokit, 
-    owner, 
-    repo, 
-    pr.number, 
-    config.responses.pr_closed,
-    config
-  );
-  
-  core.info(logMessage(config.logging.pr_closed_log, { number: pr.number }));
+  await closePRWithType(octokit, owner, repo, pr, config, 'pr_closed', 'pr_closed_log');
 }
 
 /**

@@ -80,10 +80,19 @@ class IssueWorkflowService {
   }
 
   /**
-   * 执行Issue的垃圾检测
+   * 执行Issue的分层检测（新方法）
+   */
+  async performLayeredDetection(issue, readmeContent, pinnedIssuesContent, templateAnalysisReport) {
+    return await this.analyzer.analyzeIssue(issue, readmeContent, pinnedIssuesContent, templateAnalysisReport);
+  }
+
+  /**
+   * 执行Issue的垃圾检测（保留旧方法以兼容）
    */
   async performSpamDetection(issue, readmeContent, pinnedIssuesContent, templateAnalysisReport) {
-    return await this.analyzer.detectSpam(issue, readmeContent, pinnedIssuesContent, templateAnalysisReport);
+    // 使用新的分层检测方法
+    const result = await this.performLayeredDetection(issue, readmeContent, pinnedIssuesContent, templateAnalysisReport);
+    return result.decision;
   }
 }
 

@@ -3,6 +3,41 @@ const fs = require('fs');
 const path = require('path');
 
 /**
+ * 验证配置完整性
+ * @param {Object} config 配置对象
+ * @throws {Error} 配置不完整时抛出错误
+ */
+function validateConfig(config) {
+  const requiredSections = ['prompts', 'responses', 'logging', 'ai_settings', 'defaults'];
+  const requiredPrompts = ['spam_detection', 'readme_coverage_check', 'content_quality_check', 'pr_spam_detection'];
+  
+  // 检查主要配置段
+  for (const section of requiredSections) {
+    if (!config[section]) {
+      throw new Error(`配置文件缺少必需的段落: ${section}`);
+    }
+  }
+  
+  // 检查关键提示词
+  for (const prompt of requiredPrompts) {
+    if (!config.prompts[prompt]) {
+      throw new Error(`配置文件缺少必需的提示词: ${prompt}`);
+    }
+  }
+  
+  // 检查AI设置
+  if (typeof config.ai_settings.max_tokens !== 'number' || config.ai_settings.max_tokens <= 0) {
+    throw new Error('配置文件中的 max_tokens 必须是正整数');
+  }
+  
+  if (typeof config.ai_settings.temperature !== 'number' || config.ai_settings.temperature < 0 || config.ai_settings.temperature > 2) {
+    throw new Error('配置文件中的 temperature 必须是 0-2 之间的数字');
+  }
+  
+  core.info('✅ 配置文件验证通过');
+}
+
+/**
  * 读取配置文件
  * @returns {Object} 配置对象
  */
@@ -10,7 +45,12 @@ function loadConfig() {
   try {
     const configPath = path.join(__dirname, '..', '..', 'config.json');
     const configContent = fs.readFileSync(configPath, 'utf8');
-    return JSON.parse(configContent);
+    const config = JSON.parse(configContent);
+    
+    // 验证配置完整性
+    validateConfig(config);
+    
+    return config;
   } catch (error) {
     core.error('无法读取配置文件: ' + error.message);
     throw error;
@@ -27,7 +67,7 @@ function parseInputs(config) {
   const token = core.getInput('github-token') || process.env.INPUT_GITHUB_TOKEN || process.env.GITHUB_TOKEN;
   const aiModel = core.getInput('ai-model') || process.env.INPUT_AI_MODEL || config.defaults.ai_model;
   const labelsInput = core.getInput('labels') || process.env.INPUT_LABELS || config.defaults.labels;
-  const blacklistUsersInput = core.getInput('blacklist') || process.env.INPUT_BLACKLIST_USERS || process.env.BLACKLIST_USERS || '';
+  const blacklistUsersInput = core.getInput('blacklist') || process.env.INPUT_BLACKLIST || '';
   
   // 获取自定义AI配置参数
   const customBaseUrl = core.getInput('ai-base-url') || process.env.INPUT_AI_BASE_URL || '';
@@ -76,5 +116,6 @@ function parseInputs(config) {
 
 module.exports = {
   loadConfig,
-  parseInputs
+  parseInputs,
+  validateConfig
 };

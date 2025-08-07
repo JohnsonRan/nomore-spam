@@ -9,7 +9,7 @@ inputs:
   github-token:
     description: 'GitHub token with issues:write, pull-requests:write, contents:read, and models:read permissions'
     required: true
-    default: ${{ github.token }}
+    default: '${{ github.token }}'
   ai-model:
     description: 'AI model to use for spam detection'
     required: false
@@ -59,11 +59,11 @@ runs:
         cd ${{ github.action_path }}
         node src/index.js
       env:
-        INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
-        INPUT_AI-MODEL: ${{ inputs.ai-model }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_AI_MODEL: ${{ inputs.ai-model }}
         INPUT_LABELS: ${{ inputs.labels }}
-        INPUT_ANALYZE-FILE-CHANGES: ${{ inputs.analyze-file-changes }}
-        INPUT_MAX-ANALYSIS-DEPTH: ${{ inputs.max-analysis-depth }}
+        INPUT_ANALYZE_FILE_CHANGES: ${{ inputs.analyze-file-changes }}
+        INPUT_MAX_ANALYSIS_DEPTH: ${{ inputs.max-analysis-depth }}
         INPUT_BLACKLIST: ${{ inputs.blacklist }}
-        INPUT_AI-BASE-URL: ${{ inputs.ai-base-url }}
-        INPUT_AI-API-KEY: ${{ inputs.ai-api-key }}
+        INPUT_AI_BASE_URL: ${{ inputs.ai-base-url }}
+        INPUT_AI_API_KEY: ${{ inputs.ai-api-key }}

@@ -67,13 +67,15 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     // 记录模板检测信息
     logTemplateDetectionInfo(qualityAnalysis, config);
 
-    // 调用AI进行垃圾检测
-    const decision = await workflowService.performSpamDetection(
+    // 调用AI进行分层检测
+    const analysisResult = await workflowService.performLayeredDetection(
       issue, 
       readmeContent, 
       pinnedIssuesContent, 
       templateAnalysisReport
     );
+    
+    const decision = analysisResult.decision;
     
     if (decision === 'SPAM') {
       await handleSpamIssue(octokit, owner, repo, issue, config);
@@ -84,13 +86,11 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
       await handleBasicIssue(octokit, owner, repo, issue, config);
     } else if (decision === 'UNCLEAR') {
       await handleUnclearIssue(octokit, owner, repo, issue, config);
+      // 即使UNCLEAR也进行分类，便于统计
       await workflowService.classifyAndLabelIssue(owner, repo, issue, qualityAnalysis, labelsList);
     } else {
-      // 对于通过初始检测的Issue，进一步检查是否与README相关（双重检查）
-      const isReadmeRelated = await workflowService.checkAndHandleReadmeRelevance(owner, repo, issue, readmeContent);
-      if (!isReadmeRelated) {
-        await handleValidIssue(workflowService, owner, repo, issue, qualityAnalysis, labelsList);
-      }
+      // KEEP - 有效Issue，直接进行分类和标签
+      await handleValidIssue(workflowService, owner, repo, issue, qualityAnalysis, labelsList);
     }
     
   } catch (error) {

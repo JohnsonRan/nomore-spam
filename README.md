@@ -42,7 +42,7 @@ jobs:
       - name: Detect and close spam
         uses: JohnsonRan/nomore-spam@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
 ```
 
 ### 2. 自定义配置
@@ -51,7 +51,7 @@ jobs:
 
 | 参数 | 描述 | 必需 | 默认值 |
 |------|------|------|--------|
-| `github-token` | - | 是 | `${{ secrets.GITHUB_TOKEN }}` |
+| `github-token` | - | 是 | `${{ github.token }}` |
 | `ai-base-url` | 自定义AI API基础URL（OpenAI兼容），不指定则使用GitHub Models API | 否 | `''` |
 | `ai-api-key` | 自定义AI API密钥，不指定则使用GitHub Token | 否 | `''` |
 | `ai-model` | 模型名称 | 否 | `openai/gpt-4o` |
@@ -85,7 +85,7 @@ jobs:
       - name: Detect and close spam
         uses: JohnsonRan/nomore-spam@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           ai-base-url: ${{ secrets.AI_BASE_URL }}  # 可选：自定义API端点（去除 /chat/completions）
           ai-api-key: ${{ secrets.AI_API_KEY }}  # 可选：自定义API密钥
           ai-model: ${{ secrets.AI_MODEL }}  # 可选：自定义模型名称
@@ -99,22 +99,30 @@ jobs:
 
 ### Issue检测
 
-对于新创建的Issue，Action会进行智能检测：
+对于新创建的Issue，Action会进行分层智能检测：
 
 1. **模板智能识别**: 自动检测Issue是否使用了GitHub Issue模板
    - 识别常见模板模式（如标题前缀、Markdown标题、表格等）
    - 提取用户实际填写的内容，过滤模板结构
    - 分析内容质量和完整性
 
-2. **垃圾检测**: 结合仓库README和模板分析结果，使用AI判断Issue质量
-3. **智能判断**: AI会判断Issue应该如何处理：
-   - **README_COVERED**: 问题已在README中有说明，将生成基于README的简洁回答，关闭但不锁定
-   - **SPAM**: 明显的垃圾信息，关闭并锁定
-   - **UNCLEAR**: 描述过于简单，缺乏有效信息
-   - **BASIC**: 基础使用问题，建议用户善用搜索引擎
-   - **KEEP**: 描述清楚且有效的正常Issue
+2. **分层检测流程**: 采用三步检测策略，确保准确判断：
+   
+   **第一步 - 垃圾检测**: 
+   - 检测明显的垃圾信息、随机字符、广告内容等
+   - 只有明确的垃圾内容才会被立即关闭并锁定
+   
+   **第二步 - README覆盖检查**: 
+   - 检查问题是否已在README或置顶Issues中有明确回答
+   - 只有100%确定已被覆盖的问题才会生成基于README的回答并关闭
+   - 避免AI幻觉导致的误判
+   
+   **第三步 - 内容质量检查**: 
+   - **UNCLEAR**: 描述过于简单，缺乏有效信息，添加补充信息提示
+   - **BASIC**: 基础使用问题，建议用户善用搜索引擎，关闭并锁定
+   - **VALID**: 描述清楚且有效的正常Issue，继续处理
 
-4. **智能分类**: 对于通过垃圾检测的Issue，系统会：
+3. **智能分类**: 对于通过所有检测的Issue，系统会：
    - 使用提取的用户实际内容（而非模板结构）进行AI分析
    - 根据 `labels` 参数中指定的标签列表进行AI分析
    - 动态判断Issue属于哪种类型（如bug、enhancement、question等）
@@ -122,22 +130,26 @@ jobs:
 
 ### Pull Request检测
 
-对于新创建的PR，Action会：
+对于新创建的PR，Action也采用分层检测：
 
-1. **基本信息分析**: 分析PR的标题和描述内容
-2. **文件变更分析**（可选）: 如果启用 `analyze-file-changes`，还会分析：
+1. **第一步 - 垃圾检测**: 
+   - 检测明显的垃圾内容、随机字符、广告等
+   - 分析文件变更是否有意义
+   
+2. **第二步 - 提交规范检查**: 
+   - 使用AI检查PR标题是否符合Git提交规范
+   - 如 `feat: 添加新功能`、`fix: 修复问题`、`docs: 更新文档` 等
+   
+3. **第三步 - PR质量检查**: 
+   - **UNCLEAR**: 目的不明确，缺乏描述（暂时保持开启）
+   - **MALICIOUS**: 包含恶意或可疑内容，关闭并锁定
+   - **TRIVIAL**: 无意义的变更或纯测试内容，关闭并锁定
+   - **VALID**: 有价值的合法PR，保持开启
+
+4. **文件变更分析**（可选）: 如果启用 `analyze-file-changes`，还会分析：
    - 修改的文件名和状态
    - 添加/删除的行数统计
    - 实际的代码变更内容（受限制的行数）
-3. **AI综合判断**: 判断PR是否为垃圾信息：
-   - 无意义的随机内容或字符
-   - 恶意内容或广告
-   - 与项目完全无关的内容
-   - 明显的测试或玩笑性质
-   - 无价值的文件变更（如仅添加空行、随机字符等）
-4. **自动处理**: 如果判断为垃圾PR，则：
-   - 添加解释评论
-   - 关闭PR
 
 ## 权限要求
 

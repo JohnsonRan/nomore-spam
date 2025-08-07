@@ -3,6 +3,31 @@ const { logMessage } = require('../utils/helpers');
 const { closeIssue, addComment } = require('../services/github');
 
 /**
+ * 通用关闭Issue处理函数
+ * @param {Object} octokit GitHub API客户端
+ * @param {string} owner 仓库所有者
+ * @param {string} repo 仓库名
+ * @param {Object} issue Issue对象
+ * @param {Object} config 配置对象
+ * @param {string} responseKey 响应消息键名
+ * @param {string} logKey 日志消息键名
+ * @param {boolean} shouldLock 是否锁定Issue
+ */
+async function closeIssueWithType(octokit, owner, repo, issue, config, responseKey, logKey, shouldLock = true) {
+  await closeIssue(
+    octokit, 
+    owner, 
+    repo, 
+    issue.number, 
+    config.responses[responseKey],
+    config,
+    shouldLock
+  );
+  
+  core.info(logMessage(config.logging[logKey], { number: issue.number }));
+}
+
+/**
  * 处理垃圾Issue
  * @param {Object} octokit GitHub API客户端
  * @param {string} owner 仓库所有者
@@ -11,17 +36,7 @@ const { closeIssue, addComment } = require('../services/github');
  * @param {Object} config 配置对象
  */
 async function handleSpamIssue(octokit, owner, repo, issue, config) {
-  await closeIssue(
-    octokit, 
-    owner, 
-    repo, 
-    issue.number, 
-    config.responses.issue_spam,
-    config,
-    true  // 锁定
-  );
-  
-  core.info(logMessage(config.logging.issue_spam_log, { number: issue.number }));
+  await closeIssueWithType(octokit, owner, repo, issue, config, 'issue_spam', 'issue_spam_log', true);
 }
 
 /**
@@ -33,18 +48,7 @@ async function handleSpamIssue(octokit, owner, repo, issue, config) {
  * @param {Object} config 配置对象
  */
 async function handleBasicIssue(octokit, owner, repo, issue, config) {
-  
-  await closeIssue(
-    octokit, 
-    owner, 
-    repo, 
-    issue.number, 
-    config.responses.issue_basic, 
-    config,
-    true
-  );
-  
-  core.info(logMessage(config.logging.issue_basic_log, { number: issue.number }));
+  await closeIssueWithType(octokit, owner, repo, issue, config, 'issue_basic', 'issue_basic_log', true);
 }
 
 /**
@@ -77,24 +81,27 @@ async function handleUnclearIssue(octokit, owner, repo, issue, config) {
  * @param {Object} config 配置对象
  */
 async function handleBlacklistedUser(octokit, owner, repo, issue, config) {
-  const readmeUrl = `https://github.com/${owner}/${repo}#readme`;
+  // 如果没有配置黑名单响应，使用垃圾回应
+  const responseKey = config.responses.issue_blacklist || config.responses.issue_spam;
+  const logKey = config.logging.issue_blacklist_log || config.logging.issue_closed_log;
   
   await closeIssue(
     octokit, 
     owner, 
     repo, 
     issue.number, 
-    config.responses.issue_closed.replace('{readme_url}', readmeUrl),
+    responseKey,
     config,
     true
   );
   
-  core.info(logMessage(config.logging.issue_closed_log, { number: issue.number }));
+  core.info(logMessage(logKey, { number: issue.number }));
 }
 
 module.exports = {
   handleSpamIssue,
   handleBasicIssue,
   handleUnclearIssue,
-  handleBlacklistedUser
+  handleBlacklistedUser,
+  closeIssueWithType
 };

@@ -1,10 +1,18 @@
 {
   "prompts": {
-    "issue_detection": "Analyze this GitHub Issue:\n\nREADME: {readme_content}\n\nPinned Issues: {pinned_issues_content}\n\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nIs this issue:\n1. Already covered in README or pinned issues?\n2. Spam/meaningless content?\n3. Too vague/lacks details?\n4. Too basic/elementary - Even if the description is detailed and complete, if the core question is about basic usage, installation, or concepts that can be easily found through documentation or search engines, it should be considered basic.\n\nRespond ONLY with:\n- `README_COVERED` - if already covered in README or pinned issues\n- `SPAM` - if spam or meaningless content\n- `UNCLEAR` - if too vague, needs more details  \n- `BASIC` - if too basic/elementary for the project level (regardless of description quality)\n- `KEEP` - if clear and valid",
+    "spam_detection": "Analyze this GitHub Issue/PR for spam content:\n\nTitle: {title}\nBody: {body}\nTemplate: {template_analysis}\n{file_changes}\n\nIs this spam or meaningless content?\nSpam indicators:\n- Random characters or keyboard mashing (e.g., 'asdfghjkl', 'qwerty123')\n- Advertisement or promotional content\n- Malicious links or content\n- Completely unrelated to the project\n- Obvious test submissions with no purpose\n- Repeated identical content\n- Content in languages completely unrelated to project context\n\nNote: For Issues, file_changes will be empty. For PRs, it shows actual code changes.\n\nRespond ONLY with:\n- `SPAM` - if spam or meaningless content\n- `NOT_SPAM` - if legitimate content (even if low quality)",
     
-    "issue_classification": "Classify this GitHub Issue:\n\nTitle: {issue_title}\nContent: {user_content}\n\nWhich label fits best: {labels_options}\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT).",
+    "readme_coverage_check": "Check if this GitHub Issue is already covered in the README or pinned issues:\n\nREADME: {readme_content}\n\nPinned Issues: {pinned_issues_content}\n\nTitle: {issue_title}\nBody: {issue_body}\n\nIs the EXACT same question/issue clearly and completely addressed in the README or pinned issues?\n\nIMPORTANT: Only mark as COVERED if you are 100% certain the exact issue is clearly explained with sufficient detail in the existing documentation.\n\nRespond ONLY with:\n- `COVERED` - ONLY if 100% certain the exact issue is clearly covered\n- `NOT_COVERED` - if not covered or if uncertain",
     
-    "pr_detection": "Analyze this GitHub PR for spam:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nSpam indicators: meaningless content, malicious code, random chars, ads, unrelated, test-only.\n\nRespond ONLY with:\n- `CLOSE` - if spam\n- `KEEP` - if legitimate (even if low quality)",
+    "content_quality_check": "Analyze the quality and clarity of this GitHub Issue:\n\nTitle: {issue_title}\nBody: {issue_body}\nTemplate: {template_analysis}\n\nEvaluate the issue quality:\n\nRespond ONLY with:\n- `UNCLEAR` - if too vague, lacks details, or needs more information\n- `BASIC` - if about basic usage, installation, or elementary concepts that can be easily found through documentation or search engines\n- `VALID` - if clear, detailed, and appropriate for the project level",
+    
+    "pr_spam_detection": "Analyze this GitHub PR for spam content:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nIs this spam or meaningless content?\nSpam indicators: random characters, advertisements, malicious content, completely unrelated content, obvious test submissions, meaningless file changes.\n\nRespond ONLY with:\n- `SPAM` - if spam or meaningless content\n- `NOT_SPAM` - if legitimate content (even if low quality)",
+    
+    "pr_commit_check": "Analyze this GitHub PR commit title compliance:\n\nTitle: {pr_title}\n\nDoes this title follow standard Git commit conventions or is it descriptive enough?\nGood examples: 'feat: add new feature', 'fix: resolve bug', 'docs: update readme', 'Update README.md', 'Add login functionality', 'Fix authentication issue'\nBad examples: random text, single meaningless words, non-descriptive titles like 'test', 'update', 'fix'\n\nRespond ONLY with:\n- `VALID` - if follows conventions or is descriptive\n- `INVALID` - if meaningless or completely non-descriptive",
+    
+    "pr_quality_check": "Analyze the quality of this GitHub PR:\n\nTitle: {pr_title}\nBody: {pr_body}\nChanges: {file_changes}\n\nEvaluate the PR quality and purpose:\n\nRespond ONLY with:\n- `UNCLEAR` - if purpose is unclear or lacks proper description\n- `MALICIOUS` - if changes appear malicious or harmful\n- `TRIVIAL` - if changes are meaningless or just testing\n- `VALID` - if clear, purposeful, and legitimate",
+    
+    "issue_classification": "Classify this GitHub Issue based on its content:\n\nTitle: {issue_title}\nContent: {user_content}\n\nAvailable labels: {labels_options}\n\nAnalyze the issue type:\n- BUG: Error reports, unexpected behavior, crashes\n- ENHANCEMENT/FEATURE: New feature requests, improvements\n- QUESTION: Help requests, usage questions, clarifications\n- DOCUMENTATION: Issues about docs, README, guides\n- Other labels as provided\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT, QUESTION).",
     
     "readme_relevance": "Analyze if this GitHub Issue is related to content in the README:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nIs this issue asking about something that is already explained or covered in the README?\n\nRespond ONLY with:\n- `RELATED` - if the issue is asking about content covered in README\n- `NOT_RELATED` - if the issue is not about README content",
     
@@ -17,7 +25,10 @@
     "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
     "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
     "readme_answer_prefix": "🤖 根据项目README的内容，我来为您解答这个问题：\n\n",
-    "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。"
+    "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。",
+    "pr_malicious": "🤖 此Pull Request包含可疑或恶意内容，将被关闭。如果您认为这是误判，请联系仓库维护者。",
+    "pr_trivial": "🤖 此Pull Request的变更过于简单或无实际意义，将被关闭。请确保PR包含有价值的改进。",
+    "pr_invalid_commit": "🤖 此Pull Request的标题不够描述性或不符合规范，将被关闭。如果您认为这是误判，请联系仓库维护者。"
   },
   
   "logging": {
@@ -28,6 +39,16 @@
     "readme_not_found": "未找到README.md文件，将跳过重复内容检查",
     "pinned_issues_found": "成功获取置顶Issues内容",
     "pinned_issues_not_found": "未找到置顶Issues，将跳过置顶Issues检查",
+    "spam_check_start": "第1步：检查是否为垃圾信息",
+    "spam_check_result": "垃圾检测结果: {result}",
+    "readme_check_start": "第2步：检查README覆盖情况",
+    "readme_check_result": "README覆盖检查结果: {result}",
+    "pr_commit_check_start": "第2步：检查提交标题规范",
+    "pr_commit_check_result": "PR提交规范检查结果: {result}",
+    "pr_quality_check_start": "第3步：检查PR质量",
+    "pr_quality_check_result": "PR质量检查结果: {result}",
+    "quality_check_start": "第3步：检查内容质量",
+    "quality_check_result": "内容质量检查结果: {result}",
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
     "issue_spam_log": "Issue #{number} 被检测为垃圾信息，已关闭并锁定",
     "issue_readme_covered_log": "Issue #{number} 内容已在README中覆盖，已关闭但未锁定",
@@ -39,6 +60,8 @@
     "readme_answer_failed": "为Issue #{number} 生成README回答失败: {error}",
     "pr_closed_log": "PR #{number} 已被关闭并锁定",
     "pr_commit_rule_log": "PR #{number} 标题不符合Commit规范，已关闭并锁定",
+    "pr_malicious_log": "PR #{number} 包含恶意内容，已关闭并锁定",
+    "pr_trivial_log": "PR #{number} 变更过于简单，已关闭并锁定",
     "pr_passed_log": "PR #{number} 通过检查，保持开启状态",
     "classification_start": "开始对Issue进行分类: #{number}",
     "label_added": "已为Issue #{number} 添加标签: {label}",
@@ -89,8 +112,8 @@
     "analyze_file_changes": true,
     "max_files_to_analyze": 5,
     "max_patch_lines_per_file": 5,
-    "max_tokens": 50,
-    "temperature": 0.05
+    "max_tokens": 100,
+    "temperature": 0.1
   },
   
   "defaults": {
