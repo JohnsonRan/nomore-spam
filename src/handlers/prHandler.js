@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const { logMessage, handleApiCall } = require('../utils/helpers');
+const { logMessage, handleApiCall, isValidCommitTitle } = require('../utils/helpers');
 const { callAI } = require('../services/ai');
 const { closePR } = require('../services/github');
 
@@ -22,6 +22,12 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
     const prAuthor = pr.user.login.toLowerCase();
     
     core.info(logMessage(config.logging.pr_check_start, { title: prTitle }));
+    
+    // 检查PR标题是否符合Commit规范
+    if (!isValidCommitTitle(prTitle)) {
+      await handleInvalidCommitPR(octokit, owner, repo, pr, config);
+      return;
+    }
     
     // 检查用户是否在黑名单中
     if (blacklistUsers.includes(prAuthor)) {
@@ -67,6 +73,22 @@ async function handleBlacklistedPR(octokit, owner, repo, pr, config) {
   );
   
   core.info(logMessage(config.logging.pr_closed_log, { number: pr.number }));
+}
+
+/**
+ * 处理不符合Commit规范的PR
+ */
+async function handleInvalidCommitPR(octokit, owner, repo, pr, config) {
+  await closePR(
+    octokit, 
+    owner, 
+    repo, 
+    pr.number, 
+    config.responses.pr_closed,
+    config
+  );
+  
+  core.info(logMessage(config.logging.pr_commit_rule_log, { number: pr.number }));
 }
 
 /**

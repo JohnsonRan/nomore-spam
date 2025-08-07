@@ -47,8 +47,23 @@ async function executeApiCalls(calls) {
   return results;
 }
 
+/**
+ * 检查PR标题是否符合Commit规范
+ * @param {string} title PR标题
+ * @returns {boolean} 是否符合规范
+ */
+function isValidCommitTitle(title) {
+  // Conventional Commits 规范
+  // 格式: <type>[optional scope]: <description>
+  // type: feat, fix, docs, style, refactor, test, chore, etc.
+  const commitRegex = /^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .{1,}$/i;
+  
+  return commitRegex.test(title.trim());
+}
+
 module.exports = {
   logMessage,
   handleApiCall,
-  executeApiCalls
+  executeApiCalls,
+  isValidCommitTitle
 };
