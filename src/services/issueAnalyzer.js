@@ -122,6 +122,33 @@ class IssueAnalyzer {
   }
 
   /**
+   * 为 UNCLEAR 的 Issue 生成智能回答
+   * 即使描述不清楚，也尝试结合 README 提供有用信息
+   */
+  async generateSmartAnswerForUnclear(issue, readmeContent) {
+    if (!readmeContent) {
+      return null; // 没有 README 内容无法生成智能回答
+    }
+
+    const smartAnswerPrompt = this.config.prompts.unclear_issue_smart_answer
+      .replace('{readme_content}', readmeContent)
+      .replace('{issue_title}', issue.title)
+      .replace('{issue_body}', issue.body || '');
+    
+    const result = await callAI(this.openai, this.aiModel, smartAnswerPrompt, this.config, 'UNCLEAR智能回答生成');
+    
+    // 解析 AI 响应
+    if (result.startsWith('HELPFUL_ANSWER:')) {
+      return result.substring('HELPFUL_ANSWER:'.length).trim();
+    } else if (result === 'NEED_MORE_INFO') {
+      return null; // 确实需要更多信息
+    }
+    
+    // 如果响应格式不符合预期，尝试直接使用响应内容
+    return result && result.length > 10 ? result : null;
+  }
+
+  /**
    * 对Issue进行分类
    */
   async classifyIssue(issue, contentForClassification, labelsList) {

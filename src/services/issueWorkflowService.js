@@ -36,6 +36,54 @@ class IssueWorkflowService {
   }
 
   /**
+   * 智能处理 UNCLEAR 的 Issue
+   * 尝试结合 README 提供有用信息，如果无法提供才使用标准提示
+   */
+  async handleUnclearIssueSmartly(owner, repo, issue, readmeContent) {
+    try {
+      // 尝试生成智能回答
+      if (readmeContent) {
+        const smartAnswer = await this.analyzer.generateSmartAnswerForUnclear(issue, readmeContent);
+        
+        if (smartAnswer) {
+          // 能够提供有用的回答
+          core.info(logMessage(this.config.logging.unclear_smart_answer_generated, { number: issue.number }));
+          await this.actionService.addUnclearSmartAnswer(owner, repo, issue.number, smartAnswer);
+          return true;
+        }
+      }
+      
+      // 无法生成智能回答，回退到标准提示
+      core.info(logMessage(this.config.logging.unclear_fallback_to_standard, { number: issue.number }));
+      await this.actionService.addComment(
+        owner, 
+        repo, 
+        issue.number, 
+        this.config.responses.issue_unclear,
+        this.config.logging.issue_unclear_comment_failed
+      );
+      
+      return false;
+    } catch (error) {
+      core.error(logMessage(this.config.logging.unclear_smart_answer_failed, { 
+        number: issue.number, 
+        error: error.message 
+      }));
+      
+      // 出错时回退到标准提示
+      await this.actionService.addComment(
+        owner, 
+        repo, 
+        issue.number, 
+        this.config.responses.issue_unclear,
+        this.config.logging.issue_unclear_comment_failed
+      );
+      
+      return false;
+    }
+  }
+
+  /**
    * 检查README相关性并处理（用于双重检查）
    */
   async checkAndHandleReadmeRelevance(owner, repo, issue, readmeContent) {

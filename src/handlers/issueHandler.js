@@ -6,7 +6,6 @@ const IssueWorkflowService = require('../services/issueWorkflowService');
 const { 
   handleSpamIssue, 
   handleBasicIssue, 
-  handleUnclearIssue, 
   handleBlacklistedUser
 } = require('./issueProcessor');
 
@@ -85,7 +84,8 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     } else if (decision === 'BASIC') {
       await handleBasicIssue(octokit, owner, repo, issue, config);
     } else if (decision === 'UNCLEAR') {
-      await handleUnclearIssue(octokit, owner, repo, issue, config);
+      // 使用智能处理方式处理UNCLEAR问题
+      await workflowService.handleUnclearIssueSmartly(owner, repo, issue, readmeContent);
       // 即使UNCLEAR也进行分类，便于统计
       await workflowService.classifyAndLabelIssue(owner, repo, issue, qualityAnalysis, labelsList);
     } else {

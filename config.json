@@ -16,7 +16,9 @@
     
     "readme_relevance": "Analyze if this GitHub Issue is related to content in the README:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nIs this issue asking about something that is already explained or covered in the README?\n\nRespond ONLY with:\n- `RELATED` - if the issue is asking about content covered in README\n- `NOT_RELATED` - if the issue is not about README content",
     
-    "readme_answer": "Based on the README content, provide a brief and direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nProvide a concise answer in Chinese. Focus on the key information and avoid lengthy explanations. If applicable, mention the relevant section in README."
+    "readme_answer": "Based on the README content, provide a brief and direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nProvide a concise answer in Chinese. Focus on the key information and avoid lengthy explanations. If applicable, mention the relevant section in README.",
+    
+    "unclear_issue_smart_answer": "Analyze this unclear GitHub Issue and attempt to provide a helpful answer based on the README content and common patterns:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nEven though this issue lacks details, try to:\n1. Identify the likely intent or problem area from the title and available context\n2. Provide relevant information from README that might address the user's needs\n3. Suggest the most likely solutions or starting points\n4. Guide the user towards more specific information\n\nRespond with either:\n- `HELPFUL_ANSWER:` followed by a useful response in Chinese based on README content\n- `NEED_MORE_INFO` if you cannot provide any meaningful assistance even with README context\n\nIf providing a helpful answer, be specific and include relevant README sections or links when possible."
   },
   
   "responses": {
@@ -25,6 +27,7 @@
     "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
     "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
     "readme_answer_prefix": "🤖 根据项目README的内容，我来为您解答这个问题：\n\n",
+    "unclear_answer_prefix": "🤖 虽然您的描述不够详细，但根据项目文档，我尝试为您提供一些可能有用的信息：\n\n",
     "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。",
     "pr_malicious": "🤖 此Pull Request包含可疑或恶意内容，将被关闭。如果您认为这是误判，请联系仓库维护者。",
     "pr_trivial": "🤖 此Pull Request的变更过于简单或无实际意义，将被关闭。请确保PR包含有价值的改进。",
@@ -57,6 +60,9 @@
     "issue_passed_log": "Issue #{number} 通过检查，保持开启状态",
     "readme_relevance_check": "检查Issue #{number} 与README的相关性",
     "readme_answer_generated": "为Issue #{number} 生成基于README的回答",
+    "unclear_smart_answer_generated": "为UNCLEAR Issue #{number} 生成智能回答",
+    "unclear_smart_answer_failed": "为UNCLEAR Issue #{number} 生成智能回答失败: {error}",
+    "unclear_fallback_to_standard": "UNCLEAR Issue #{number} 无法生成智能回答，使用标准提示",
     "readme_answer_failed": "为Issue #{number} 生成README回答失败: {error}",
     "pr_closed_log": "PR #{number} 已被关闭并锁定",
     "pr_commit_rule_log": "PR #{number} 标题不符合Commit规范，已关闭并锁定",

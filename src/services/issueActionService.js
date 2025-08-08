@@ -30,6 +30,38 @@ class IssueActionService {
   }
 
   /**
+   * 添加UNCLEAR Issue的智能回答评论
+   */
+  async addUnclearSmartAnswer(owner, repo, issueNumber, smartAnswer) {
+    const fullAnswer = this.config.responses.unclear_answer_prefix + smartAnswer;
+    
+    await addComment(
+      this.octokit, 
+      owner, 
+      repo, 
+      issueNumber, 
+      fullAnswer,
+      this.config.logging.unclear_smart_answer_failed
+    );
+    
+    core.info(logMessage(this.config.logging.unclear_smart_answer_generated, { number: issueNumber }));
+  }
+
+  /**
+   * 通用添加评论方法
+   */
+  async addComment(owner, repo, issueNumber, content, errorLogKey) {
+    await addComment(
+      this.octokit, 
+      owner, 
+      repo, 
+      issueNumber, 
+      content,
+      errorLogKey
+    );
+  }
+
+  /**
    * 为Issue添加分类标签
    */
   async addClassificationLabel(owner, repo, issue, classification, labelsList) {
