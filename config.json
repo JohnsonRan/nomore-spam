@@ -18,7 +18,7 @@
     
     "readme_answer": "Based on the README content, provide a brief and direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nProvide a concise answer in Chinese. Focus on the key information and avoid lengthy explanations. If applicable, mention the relevant section in README.",
     
-    "unclear_issue_smart_answer": "Analyze this unclear GitHub Issue and attempt to provide a helpful answer based on the README content and common patterns:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nEven though this issue lacks details, try to:\n1. Identify the likely intent or problem area from the title and available context\n2. Provide relevant information from README that might address the user's needs\n3. Suggest the most likely solutions or starting points\n4. Guide the user towards more specific information\n\nRespond with either:\n- `HELPFUL_ANSWER:` followed by a useful response in Chinese based on README content\n- `NEED_MORE_INFO` if you cannot provide any meaningful assistance even with README context\n\nIf providing a helpful answer, be specific and include relevant README sections or links when possible."
+  "unclear_issue_smart_answer": "Provide a brief, helpful answer for this unclear GitHub Issue based strictly on README content.\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nRequirements:\n- Only answer if README contains directly relevant information.\n- Answer must be concise (1-2 sentences, max 80 Chinese characters).\n- Base answer strictly on specific README content, do not fabricate.\n- If no relevant content, respond with NEED_MORE_INFO.\n- Respond in Chinese.\n\nResponse format:\n- If relevant info found: HELPFUL_ANSWER: + brief Chinese answer\n- If no relevant info: NEED_MORE_INFO"
   },
   
   "responses": {
@@ -27,7 +27,7 @@
     "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
     "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
     "readme_answer_prefix": "🤖 根据项目README的内容，我来为您解答这个问题：\n\n",
-    "unclear_answer_prefix": "🤖 虽然您的描述不够详细，但根据项目文档，我尝试为您提供一些可能有用的信息：\n\n",
+    "unclear_answer_prefix": "🤖 根据项目文档，为您提供以下信息：\n\n",
     "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。",
     "pr_malicious": "🤖 此Pull Request包含可疑或恶意内容，将被关闭。如果您认为这是误判，请联系仓库维护者。",
     "pr_trivial": "🤖 此Pull Request的变更过于简单或无实际意义，将被关闭。请确保PR包含有价值的改进。",
