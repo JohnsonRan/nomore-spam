@@ -42,7 +42,7 @@ class PrActionService {
         }));
         return true;
       } else {
-        core.warning(logMessage(this.config.logging.label_no_match, { 
+        core.warning(logMessage(this.config.logging.pr_label_no_match, { 
           number: pr.number, 
           classification 
         }));

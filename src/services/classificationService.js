@@ -99,58 +99,28 @@ class ClassificationService {
       return null;
     }
 
-    // 尝试精确匹配
+    // 1. 尝试精确匹配（优先级最高）
     for (const label of labelsList) {
-      if (label.toLowerCase() === classification.toLowerCase()) {
+      if (label.toLowerCase() === classification.toLowerCase().trim()) {
         return label;
       }
     }
 
-    // 尝试包含匹配
+    // 2. 尝试包含匹配（AI返回的分类结果可能包含标签名）
     for (const label of labelsList) {
-      if (classification.toLowerCase().includes(label.toLowerCase()) || 
-          label.toLowerCase().includes(classification.toLowerCase())) {
+      if (classification.toLowerCase().includes(label.toLowerCase())) {
         return label;
       }
     }
 
-    // 特殊匹配规则
-    const classificationLower = classification.toLowerCase();
-    
-    // ENHANCEMENT 和 FEATURE 的别名匹配
-    if ((classificationLower.includes('enhancement') || 
-         classificationLower.includes('feature') || 
-         classificationLower.includes('improve')) && 
-        (labelsList.some(l => l.toLowerCase().includes('enhancement')) ||
-         labelsList.some(l => l.toLowerCase().includes('feature')))) {
-      return labelsList.find(l => 
-        l.toLowerCase().includes('enhancement') || 
-        l.toLowerCase().includes('feature')
-      );
+    // 3. 尝试反向包含匹配（标签名可能包含AI返回的分类）
+    for (const label of labelsList) {
+      if (label.toLowerCase().includes(classification.toLowerCase().trim())) {
+        return label;
+      }
     }
 
-    // BUG 的别名匹配
-    if ((classificationLower.includes('bug') || 
-         classificationLower.includes('fix') || 
-         classificationLower.includes('error')) && 
-        labelsList.some(l => l.toLowerCase().includes('bug'))) {
-      return labelsList.find(l => l.toLowerCase().includes('bug'));
-    }
-
-    // DOCUMENTATION 的别名匹配
-    if ((classificationLower.includes('doc') || 
-         classificationLower.includes('readme')) && 
-        labelsList.some(l => l.toLowerCase().includes('doc'))) {
-      return labelsList.find(l => l.toLowerCase().includes('doc'));
-    }
-
-    // QUESTION 的别名匹配
-    if ((classificationLower.includes('question') || 
-         classificationLower.includes('help')) && 
-        labelsList.some(l => l.toLowerCase().includes('question'))) {
-      return labelsList.find(l => l.toLowerCase().includes('question'));
-    }
-
+    // 如果都不匹配，返回null
     return null;
   }
 }
