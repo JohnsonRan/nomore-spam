@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const { logMessage } = require('../utils/helpers');
 const IssueAnalyzer = require('../services/issueAnalyzer');
+const ClassificationService = require('../services/classificationService');
 const IssueActionService = require('../services/issueActionService');
 
 /**
@@ -9,6 +10,7 @@ const IssueActionService = require('../services/issueActionService');
 class IssueWorkflowService {
   constructor(octokit, openai, aiModel, config) {
     this.analyzer = new IssueAnalyzer(openai, aiModel, config);
+    this.classifier = new ClassificationService(openai, aiModel, config);
     this.actionService = new IssueActionService(octokit, config);
     this.config = config;
   }
@@ -117,7 +119,8 @@ class IssueWorkflowService {
       // 优先使用提取的用户内容，如果没有则使用原始内容
       const contentForClassification = qualityAnalysis?.contentInfo?.userContent || issue.body || '';
       
-      const classification = await this.analyzer.classifyIssue(issue, contentForClassification, labelsList);
+      // 使用通用分类服务进行Issue分类
+      const classification = await this.classifier.classifyIssue(issue, contentForClassification, labelsList);
       
       return await this.actionService.addClassificationLabel(owner, repo, issue, classification, labelsList);
       

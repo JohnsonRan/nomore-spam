@@ -1,4 +1,5 @@
 const { callAI } = require('./ai');
+const ClassificationService = require('./classificationService');
 
 /**
  * Issue分析服务 - 负责各种AI分析任务
@@ -8,6 +9,7 @@ class IssueAnalyzer {
     this.openai = openai;
     this.aiModel = aiModel;
     this.config = config;
+    this.classifier = new ClassificationService(openai, aiModel, config);
   }
 
   /**
@@ -152,14 +154,7 @@ class IssueAnalyzer {
    * 对Issue进行分类
    */
   async classifyIssue(issue, contentForClassification, labelsList) {
-    const labelsOptions = labelsList.map(l => l.toUpperCase()).join('、');
-    
-    const classificationPrompt = this.config.prompts.issue_classification
-      .replace('{issue_title}', issue.title)
-      .replace('{user_content}', contentForClassification)
-      .replace('{labels_options}', labelsOptions);
-    
-    return await callAI(this.openai, this.aiModel, classificationPrompt, this.config, 'Issue分类');
+    return await this.classifier.classifyIssue(issue, contentForClassification, labelsList);
   }
 
   /**

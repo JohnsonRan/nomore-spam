@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const { logMessage, handleApiCall } = require('../utils/helpers');
-const IssueAnalyzer = require('../services/issueAnalyzer');
+const PrWorkflowService = require('../services/prWorkflowService');
 const { closePR } = require('../services/github');
 
 /**
@@ -12,9 +12,10 @@ const { closePR } = require('../services/github');
  * @param {string} repo 仓库名
  * @param {string} aiModel AI模型名
  * @param {Object} config 配置对象
+ * @param {Array} labelsList 标签列表
  * @param {Array} blacklistUsers 黑名单用户列表
  */
-async function handleNewPR(octokit, openai, context, owner, repo, aiModel, config, blacklistUsers) {
+async function handleNewPR(octokit, openai, context, owner, repo, aiModel, config, labelsList, blacklistUsers) {
   try {
     const pr = context.payload.pull_request;
     const prTitle = pr.title;
@@ -31,11 +32,11 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
     // 获取PR的文件变更
     const fileChanges = await analyzeFileChanges(octokit, owner, repo, pr, config);
     
-    // 创建分析器实例
-    const analyzer = new IssueAnalyzer(openai, aiModel, config);
+    // 创建工作流服务实例
+    const workflowService = new PrWorkflowService(octokit, openai, aiModel, config);
     
     // 进行分层检测
-    const analysisResult = await analyzer.analyzePR(pr, fileChanges);
+    const analysisResult = await workflowService.performLayeredDetection(pr, fileChanges);
     const decision = analysisResult.decision;
     
     if (decision === 'SPAM') {
@@ -47,13 +48,28 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
     } else if (decision === 'UNCLEAR') {
       // 暂时保持开启，但可以添加评论要求澄清
       core.info(`PR #{${pr.number}} 描述不够清晰，但暂时保持开启`);
+      // 对于UNCLEAR的PR也可以尝试分类
+      await handleValidPR(workflowService, owner, repo, pr, fileChanges, labelsList);
     } else {
-      core.info(logMessage(config.logging.pr_passed_log, { number: pr.number }));
+      // KEEP - 有效PR，进行分类并添加标签
+      await handleValidPR(workflowService, owner, repo, pr, fileChanges, labelsList);
     }
     
   } catch (error) {
     core.error(logMessage(config.logging.pr_process_error, { error: error.message }));
     throw error;
+  }
+}
+
+/**
+ * 处理有效PR
+ */
+async function handleValidPR(workflowService, owner, repo, pr, fileChanges, labelsList) {
+  core.info(logMessage(workflowService.config.logging.pr_passed_log, { number: pr.number }));
+  
+  // 对于通过检查的PR，进行分类并添加标签
+  if (labelsList && labelsList.length > 0) {
+    await workflowService.classifyAndLabelPR(owner, repo, pr, labelsList, fileChanges);
   }
 }
 

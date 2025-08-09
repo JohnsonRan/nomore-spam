@@ -14,6 +14,8 @@
     
     "issue_classification": "Classify this GitHub Issue based on its content:\n\nTitle: {issue_title}\nContent: {user_content}\n\nAvailable labels: {labels_options}\n\nAnalyze the issue type:\n- BUG: Error reports, unexpected behavior, crashes\n- ENHANCEMENT/FEATURE: New feature requests, improvements\n- QUESTION: Help requests, usage questions, clarifications\n- DOCUMENTATION: Issues about docs, README, guides\n- Other labels as provided\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT, QUESTION).",
     
+    "pr_classification": "Classify this GitHub Pull Request based on its content and changes:\n\nTitle: {pr_title}\nDescription: {pr_body}\nFile Changes: {file_changes}\n\nAvailable labels: {labels_options}\n\nAnalyze the PR type:\n- BUG: Bug fixes, error corrections\n- ENHANCEMENT/FEATURE: New features, improvements, enhancements\n- DOCUMENTATION: Documentation updates, README changes\n- REFACTOR: Code refactoring, restructuring\n- CHORE: Maintenance, dependencies updates, build changes\n- Other labels as provided\n\nRespond with ONLY the label name (e.g., BUG, ENHANCEMENT, DOCUMENTATION).",
+    
     "readme_relevance": "Analyze if this GitHub Issue is related to content in the README:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nIs this issue asking about something that is already explained or covered in the README?\n\nRespond ONLY with:\n- `RELATED` - if the issue is asking about content covered in README\n- `NOT_RELATED` - if the issue is not about README content",
     
     "readme_answer": "Based on the README content, provide a brief and direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nProvide a concise answer in Chinese. Focus on the key information and avoid lengthy explanations. If applicable, mention the relevant section in README.",
@@ -69,6 +71,9 @@
     "pr_malicious_log": "PR #{number} 包含恶意内容，已关闭并锁定",
     "pr_trivial_log": "PR #{number} 变更过于简单，已关闭并锁定",
     "pr_passed_log": "PR #{number} 通过检查，保持开启状态",
+    "pr_classification_start": "开始对PR进行分类: #{number}",
+    "pr_label_added": "已为PR #{number} 添加标签: {label}",
+    "pr_label_no_match": "PR #{number} 分类结果不匹配任何预设标签: {classification}",
     "classification_start": "开始对Issue进行分类: #{number}",
     "label_added": "已为Issue #{number} 添加标签: {label}",
     "label_no_match": "Issue #{number} 分类结果不匹配任何预设标签: {classification}",
