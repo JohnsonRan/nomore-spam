@@ -94,21 +94,8 @@ class IssueAnalyzer {
       return { decision: 'README_COVERED', step: 2 };
     }
 
-    // 第三步：内容质量检查
-    console.log(this.config.logging.quality_check_start);
-    const qualityResult = await this.checkContentQuality(issue, templateAnalysisReport);
-    console.log(this.config.logging.quality_check_result.replace('{result}', qualityResult));
-    
-    if (qualityResult === 'UNCLEAR') {
-      return { decision: 'UNCLEAR', step: 3 };
-    }
-    
-    if (qualityResult === 'BASIC') {
-      return { decision: 'BASIC', step: 3 };
-    }
-
-    // 通过所有检查
-    return { decision: 'KEEP', step: 3 };
+    // 通过所有检查，需要进行分类
+    return { decision: 'KEEP', step: 2 };
   }
 
   /**

@@ -5,7 +5,6 @@ const { analyzeIssueQuality, generateAnalysisReport } = require('../services/tem
 const IssueWorkflowService = require('../services/issueWorkflowService');
 const { 
   handleSpamIssue, 
-  handleBasicIssue, 
   handleBlacklistedUser
 } = require('./issueProcessor');
 
@@ -81,32 +80,26 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     } else if (decision === 'README_COVERED') {
       // README相关的Issue：先回答，再关闭但不锁定
       await workflowService.handleReadmeRelatedIssue(owner, repo, issue, readmeContent);
-    } else if (decision === 'BASIC') {
-      await handleBasicIssue(octokit, owner, repo, issue, config);
-    } else if (decision === 'UNCLEAR') {
-      // 使用智能处理方式处理UNCLEAR问题
-      await workflowService.handleUnclearIssueSmartly(owner, repo, issue, readmeContent);
-      // 即使UNCLEAR也进行分类，便于统计
-      await workflowService.classifyAndLabelIssue(owner, repo, issue, qualityAnalysis, labelsList);
     } else {
-      // KEEP - 有效Issue，直接进行分类和标签
-      await handleValidIssue(workflowService, owner, repo, issue, qualityAnalysis, labelsList);
+      // KEEP - 需要进行智能分类和处理
+      const result = await workflowService.classifyAndHandleIssue(owner, repo, issue, qualityAnalysis, labelsList);
+      
+      if (result.closed) {
+        // 已被关闭（如基础问题）
+        core.info(`Issue #${issue.number} 已根据分类结果关闭`);
+      } else if (result.needsInfo) {
+        // 需要补充信息（如不清晰的bug报告）
+        core.info(`Issue #${issue.number} 需要用户补充详细信息`);
+      } else {
+        // 保持开启状态（如enhancement等）
+        core.info(logMessage(config.logging.issue_passed_log, { number: issue.number }));
+      }
     }
     
   } catch (error) {
     core.error(logMessage(config.logging.issue_process_error, { error: error.message }));
     throw error;
   }
-}
-
-/**
- * 处理有效Issue
- */
-async function handleValidIssue(workflowService, owner, repo, issue, qualityAnalysis, labelsList) {
-  core.info(logMessage(workflowService.config.logging.issue_passed_log, { number: issue.number }));
-  
-  // 对于通过检查的Issue，进行分类并添加标签
-  await workflowService.classifyAndLabelIssue(owner, repo, issue, qualityAnalysis, labelsList);
 }
 
 /**

@@ -110,7 +110,124 @@ class IssueWorkflowService {
   }
 
   /**
-   * 对Issue进行分类并添加标签
+   * 智能分类并处理Issue
+   * 先进行分类，根据分类结果决定是否需要质量检查
+   */
+  async classifyAndHandleIssue(owner, repo, issue, qualityAnalysis, labelsList) {
+    try {
+      this.actionService.logClassificationStart(issue.number, labelsList);
+      
+      // 优先使用提取的用户内容，如果没有则使用原始内容
+      const contentForClassification = qualityAnalysis?.contentInfo?.userContent || issue.body || '';
+      
+      // 使用通用分类服务进行Issue分类
+      const classification = await this.classifier.classifyIssue(issue, contentForClassification, labelsList);
+      
+      // 添加分类标签
+      await this.actionService.addClassificationLabel(owner, repo, issue, classification, labelsList);
+      
+      // 根据分类结果决定是否需要质量检查
+      if (this.needsDetailedInfo(classification, labelsList)) {
+        // 对于需要详细信息的类型（如bug），进行质量检查
+        const templateAnalysisReport = this.generateTemplateReport(qualityAnalysis);
+        const qualityResult = await this.analyzer.checkContentQuality(issue, templateAnalysisReport);
+        
+        if (qualityResult === 'UNCLEAR') {
+          // 需要详细信息但描述不清，要求补充
+          const readmeContent = await this.fetchReadmeContent(owner, repo);
+          await this.handleUnclearIssueSmartly(owner, repo, issue, readmeContent);
+          return { classification, needsInfo: true };
+        } else if (qualityResult === 'BASIC') {
+          // 基础问题
+          await this.actionService.closeAndLock(
+            owner, 
+            repo, 
+            issue.number, 
+            this.config.responses.issue_basic,
+            this.config.logging.issue_basic_log
+          );
+          return { classification, closed: true };
+        }
+      }
+      
+      // 不需要详细信息或质量良好，保持开启
+      return { classification, needsInfo: false };
+      
+    } catch (aiError) {
+      core.error(logMessage(this.config.logging.classification_failed, { error: aiError.message }));
+      return { classification: null, error: true };
+    }
+  }
+
+  /**
+   * 判断分类是否需要详细信息
+   */
+  needsDetailedInfo(classification, labelsList) {
+    if (!classification) return false;
+    
+    const classificationLower = classification.toLowerCase();
+    
+    // 对于bug类型的issue，需要详细信息
+    if (classificationLower.includes('bug') || 
+        classificationLower.includes('error') || 
+        classificationLower.includes('fix')) {
+      return true;
+    }
+    
+    // 检查标签列表中是否有bug相关标签
+    const bugLabels = labelsList.filter(label => 
+      label.toLowerCase().includes('bug') || 
+      label.toLowerCase().includes('error') || 
+      label.toLowerCase().includes('fix')
+    );
+    
+    if (bugLabels.length > 0 && bugLabels.some(label => 
+      label.toLowerCase() === classificationLower)) {
+      return true;
+    }
+    
+    // enhancement、feature、question等类型不需要过于详细的信息
+    return false;
+  }
+
+  /**
+   * 生成模板分析报告
+   */
+  generateTemplateReport(qualityAnalysis) {
+    if (!qualityAnalysis || !qualityAnalysis.templateInfo) {
+      return '未检测到模板使用';
+    }
+    
+    const { templateInfo, contentInfo } = qualityAnalysis;
+    
+    if (templateInfo.hasTemplate) {
+      return `检测到${templateInfo.templateType}模板，置信度${templateInfo.confidence.toFixed(1)}%，用户填写了${contentInfo.validSections}个有效段落`;
+    } else {
+      return '未使用Issue模板，为自由格式内容';
+    }
+  }
+
+  /**
+   * 获取README内容
+   */
+  async fetchReadmeContent(owner, repo) {
+    try {
+      const readme = await this.octokit.rest.repos.getReadme({
+        owner,
+        repo,
+      });
+      
+      const content = Buffer.from(readme.data.content, 'base64').toString('utf8');
+      core.info(this.config.logging.readme_found);
+      return content;
+    } catch (error) {
+      core.info(this.config.logging.readme_not_found);
+      return null;
+    }
+  }
+
+  /**
+   * 对Issue进行分类并添加标签（保留原方法以兼容）
    */
   async classifyAndLabelIssue(owner, repo, issue, qualityAnalysis, labelsList) {
     try {
