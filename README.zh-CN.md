@@ -106,7 +106,7 @@ jobs:
           blacklist: ${{ secrets.BLACKLIST }}
 ```
 
-`ai-base-url` 必须是提供商的 API 基础 URL，而不是完整端点路径。使用 `ai-api-type: responses` 调用 `/responses`；默认的 `chat-completions` 调用 `/chat/completions`。
+`ai-base-url` 必须是提供商的 API 基础 URL，而不是完整端点路径。使用 `ai-api-type: responses` 调用 `/responses`；默认的 `chat-completions` 调用 `/chat/completions`。Responses 请求会设置 `store: false`，因此 Issue 和 Pull Request 内容不会因响应状态而被保留。
 
 ## 检测流程
 

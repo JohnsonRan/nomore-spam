@@ -61,7 +61,8 @@ async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用', nor
       const response = await openai.responses.create({
         model: aiModel,
         input: prompt,
-        max_output_tokens: config.ai_settings.max_tokens
+        max_output_tokens: config.ai_settings.max_tokens,
+        store: false
       });
       content = getResponsesText(response);
     } else {

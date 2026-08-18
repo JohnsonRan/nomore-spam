@@ -84,7 +84,8 @@ describe('callAI', () => {
     expect(responsesCreate).toHaveBeenCalledWith({
       model: 'model',
       input: 'prompt',
-      max_output_tokens: 100
+      max_output_tokens: 100,
+      store: false
     });
   });
 

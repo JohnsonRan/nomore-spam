@@ -106,7 +106,7 @@ jobs:
           blacklist: ${{ secrets.BLACKLIST }}
 ```
 
-`ai-base-url` must be the provider's API base URL, not a full endpoint path. Use `ai-api-type: responses` for `/responses`; the default `chat-completions` uses `/chat/completions`.
+`ai-base-url` must be the provider's API base URL, not a full endpoint path. Use `ai-api-type: responses` for `/responses`; the default `chat-completions` uses `/chat/completions`. Responses requests set `store: false` so issue and pull request content is not retained for response state.
 
 ## Detection flow
 
