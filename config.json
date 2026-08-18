@@ -25,12 +25,14 @@
   
   "responses": {
     "issue_spam": "🤖 此Issue已被检测为垃圾信息，将被关闭并锁定。如果您认为这是误判，请联系仓库维护者。",
+    "issue_content_filtered": "🤖 AI服务的内容安全策略拒绝处理此Issue，因此自动检查无法继续，Issue将被关闭但不会锁定。如果您认为这是误判，请修改内容后重新提交或联系仓库维护者。",
     "issue_readme_covered": "🤖 根据上述回答，此问题已得到解决，Issue将被关闭。如有其他疑问，请在此Issue中继续讨论。",
     "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
     "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
     "readme_answer_prefix": "🤖 根据项目README的内容，我来为您解答这个问题：\n\n",
     "unclear_answer_prefix": "🤖 根据项目文档，为您提供以下信息：\n\n",
     "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。",
+    "pr_content_filtered": "🤖 AI服务的内容安全策略拒绝处理此Pull Request，因此自动检查无法继续，Pull Request将被关闭。如果您认为这是误判，请修改内容后重新提交或联系仓库维护者。",
     "pr_malicious": "🤖 此Pull Request包含可疑或恶意内容，将被关闭。如果您认为这是误判，请联系仓库维护者。",
     "pr_trivial": "🤖 此Pull Request的变更过于简单或无实际意义，将被关闭。请确保PR包含有价值的改进。",
     "pr_invalid_commit": "🤖 此Pull Request的标题不够描述性或不符合规范，将被关闭。如果您认为这是误判，请联系仓库维护者。"
@@ -56,6 +58,7 @@
     "quality_check_result": "内容质量检查结果: {result}",
     "issue_closed_log": "Issue #{number} 已被关闭并锁定",
     "issue_spam_log": "Issue #{number} 被检测为垃圾信息，已关闭并锁定",
+    "issue_content_filtered_log": "Issue #{number} 触发AI内容过滤，已关闭但未锁定",
     "issue_readme_covered_log": "Issue #{number} 内容已在README中覆盖，已关闭但未锁定",
     "issue_unclear_log": "Issue #{number} 被标记为描述不清，已添加补充信息提示",
     "issue_basic_log": "Issue #{number} 被检测为基础问题，已关闭并锁定",
@@ -67,6 +70,7 @@
     "unclear_fallback_to_standard": "UNCLEAR Issue #{number} 无法生成智能回答，使用标准提示",
     "readme_answer_failed": "为Issue #{number} 生成README回答失败: {error}",
     "pr_closed_log": "PR #{number} 已被关闭并锁定",
+    "pr_content_filtered_log": "PR #{number} 触发AI内容过滤，已关闭并锁定",
     "pr_commit_rule_log": "PR #{number} 标题不符合Commit规范，已关闭并锁定",
     "pr_malicious_log": "PR #{number} 包含恶意内容，已关闭并锁定",
     "pr_trivial_log": "PR #{number} 变更过于简单，已关闭并锁定",
@@ -89,6 +93,7 @@
     "ai_call_failed": "{purpose}失败: {error}",
     "ai_status_code": "状态码: {code}",
     "ai_response_body": "响应体: {body}",
+    "ai_content_filtered": "#{number} 触发AI提供商内容过滤，执行安全关闭",
     "using_ai_model": "使用AI模型: {model}",
     "using_custom_api": "使用自定义API端点",
     "using_github_models": "使用GitHub Models API",

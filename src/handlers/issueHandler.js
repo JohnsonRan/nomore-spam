@@ -3,8 +3,10 @@ const { logMessage } = require('../utils/helpers');
 const { getReadmeContent, getPinnedIssuesContent } = require('../services/github');
 const { analyzeIssueQuality, generateAnalysisReport } = require('../services/templateDetector');
 const IssueWorkflowService = require('../services/issueWorkflowService');
-const { 
-  handleSpamIssue, 
+const { isContentFilterError } = require('../services/ai');
+const {
+  handleSpamIssue,
+  handleContentFilteredIssue,
   handleBlacklistedUser
 } = require('./issueProcessor');
 
@@ -98,6 +100,14 @@ async function handleNewIssue(octokit, openai, context, owner, repo, aiModel, co
     
   } catch (error) {
     core.error(logMessage(config.logging.issue_process_error, { error: error.message }));
+
+    if (isContentFilterError(error)) {
+      const issue = context.payload.issue;
+      core.warning(logMessage(config.logging.ai_content_filtered, { number: issue.number }));
+      await handleContentFilteredIssue(octokit, owner, repo, issue, config);
+      return;
+    }
+
     throw error;
   }
 }

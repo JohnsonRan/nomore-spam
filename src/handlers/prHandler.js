@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const { logMessage, handleApiCall } = require('../utils/helpers');
 const PrWorkflowService = require('../services/prWorkflowService');
+const { isContentFilterError } = require('../services/ai');
 const { closePR } = require('../services/github');
 
 /**
@@ -57,6 +58,22 @@ async function handleNewPR(octokit, openai, context, owner, repo, aiModel, confi
     
   } catch (error) {
     core.error(logMessage(config.logging.pr_process_error, { error: error.message }));
+
+    if (isContentFilterError(error)) {
+      const pr = context.payload.pull_request;
+      core.warning(logMessage(config.logging.ai_content_filtered, { number: pr.number }));
+      await closePRWithType(
+        octokit,
+        owner,
+        repo,
+        pr,
+        config,
+        'pr_content_filtered',
+        'pr_content_filtered_log'
+      );
+      return;
+    }
+
     throw error;
   }
 }

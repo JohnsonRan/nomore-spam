@@ -40,6 +40,22 @@ async function handleSpamIssue(octokit, owner, repo, issue, config) {
 }
 
 /**
+ * 处理被AI提供商内容过滤器拒绝的Issue
+ */
+async function handleContentFilteredIssue(octokit, owner, repo, issue, config) {
+  await closeIssueWithType(
+    octokit,
+    owner,
+    repo,
+    issue,
+    config,
+    'issue_content_filtered',
+    'issue_content_filtered_log',
+    false
+  );
+}
+
+/**
  * 处理基础问题Issue
  * @param {Object} octokit GitHub API客户端
  * @param {string} owner 仓库所有者
@@ -100,6 +116,7 @@ async function handleBlacklistedUser(octokit, owner, repo, issue, config) {
 
 module.exports = {
   handleSpamIssue,
+  handleContentFilteredIssue,
   handleBasicIssue,
   handleUnclearIssue,
   handleBlacklistedUser,

@@ -1,6 +1,35 @@
 const core = require('@actions/core');
 const { logMessage } = require('../utils/helpers');
 
+const CONTENT_FILTER_MARKERS = [
+  'content_filter',
+  'content policy violation',
+  'content management policy',
+  'responsibleaipolicyviolation',
+  'prompt attack',
+  'jailbreak'
+];
+
+/**
+ * 判断AI服务是否因输入内容过滤而拒绝请求。
+ * 只处理带明确过滤信号的400响应，避免把鉴权、模型或参数错误误判为恶意内容。
+ */
+function isContentFilterError(error) {
+  const status = error?.status || error?.response?.status || error?.statusCode;
+  if (status !== 400) return false;
+
+  const details = JSON.stringify({
+    code: error?.code,
+    type: error?.type,
+    message: error?.message,
+    error: error?.error,
+    response: error?.response?.data,
+    cause: error?.cause
+  }).toLowerCase();
+
+  return CONTENT_FILTER_MARKERS.some(marker => details.includes(marker));
+}
+
 /**
  * 统一的AI API调用函数
  * @param {Object} openai OpenAI客户端实例
@@ -27,14 +56,21 @@ async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用') {
     
   } catch (aiError) {
     core.error(logMessage(config.logging.ai_call_failed, { purpose, error: aiError.message }));
-    if (aiError.response) {
-      core.error(logMessage(config.logging.ai_status_code, { code: aiError.response.status }));
-      core.error(logMessage(config.logging.ai_response_body, { body: JSON.stringify(aiError.response.data) }));
+
+    const status = aiError.status || aiError.response?.status || aiError.statusCode;
+    const responseBody = aiError.error || aiError.response?.data;
+    if (status) {
+      core.error(logMessage(config.logging.ai_status_code, { code: status }));
     }
+    if (responseBody) {
+      core.error(logMessage(config.logging.ai_response_body, { body: JSON.stringify(responseBody) }));
+    }
+
     throw aiError;
   }
 }
 
 module.exports = {
-  callAI
+  callAI,
+  isContentFilterError
 };
