@@ -22,6 +22,10 @@ inputs:
     description: 'Custom AI API key. If not provided, GitHub token will be used'
     required: false
     default: ''
+  ai-api-type:
+    description: 'OpenAI-compatible API type: chat-completions or responses'
+    required: false
+    default: 'chat-completions'
   labels:
     description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement,question")'
     required: false
@@ -72,3 +76,4 @@ runs:
         INPUT_BLACKLIST: ${{ inputs.blacklist }}
         INPUT_AI_BASE_URL: ${{ inputs.ai-base-url }}
         INPUT_AI_API_KEY: ${{ inputs.ai-api-key }}
+        INPUT_AI_API_TYPE: ${{ inputs.ai-api-type }}

@@ -65,4 +65,43 @@ describe('callAI', () => {
     await expect(callAI(openai, 'model', 'prompt', config, 'answer', false))
       .resolves.toBe('Read the setup guide.');
   });
+
+  test('supports the Responses API', async () => {
+    const responsesCreate = jest.fn().mockResolvedValue({ output_text: 'not_spam' });
+    const responsesConfig = {
+      ...config,
+      ai_settings: { ...config.ai_settings, api_type: 'responses' }
+    };
+
+    await expect(callAI(
+      { responses: { create: responsesCreate } },
+      'model',
+      'prompt',
+      responsesConfig,
+      'spam check'
+    )).resolves.toBe('NOT_SPAM');
+
+    expect(responsesCreate).toHaveBeenCalledWith({
+      model: 'model',
+      input: 'prompt',
+      max_output_tokens: 100
+    });
+  });
+
+  test('extracts text from Responses API output items', async () => {
+    const responsesConfig = {
+      ...config,
+      ai_settings: { ...config.ai_settings, api_type: 'responses' }
+    };
+    const openai = {
+      responses: {
+        create: jest.fn().mockResolvedValue({
+          output: [{ content: [{ type: 'output_text', text: 'valid' }] }]
+        })
+      }
+    };
+
+    await expect(callAI(openai, 'model', 'prompt', responsesConfig))
+      .resolves.toBe('VALID');
+  });
 });

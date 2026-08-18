@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SUPPORTED_LANGUAGES = new Set(['en', 'zh-cn']);
+const SUPPORTED_AI_API_TYPES = new Set(['chat-completions', 'responses']);
 
 function normalizeLanguage(language) {
   return language?.trim().toLowerCase() === 'zh-cn' ? 'zh-CN' : 'en';
@@ -96,6 +97,11 @@ function parseInputs(config) {
   // 获取自定义AI配置参数
   const customBaseUrl = core.getInput('ai-base-url') || process.env.INPUT_AI_BASE_URL || '';
   const customApiKey = core.getInput('ai-api-key') || process.env.INPUT_AI_API_KEY || '';
+  const aiApiType = (core.getInput('ai-api-type') || process.env.INPUT_AI_API_TYPE || config.defaults.ai_api_type).trim().toLowerCase();
+
+  if (!SUPPORTED_AI_API_TYPES.has(aiApiType)) {
+    throw new Error(`Unsupported AI API type: ${aiApiType}`);
+  }
   
   // 解析黑名单用户列表
   const blacklistUsers = blacklistUsersInput
@@ -119,6 +125,7 @@ function parseInputs(config) {
   config.ai_settings.analyze_file_changes = analyzeFileChanges;
   config.ai_settings.max_files_to_analyze = maxFilesToAnalyze;
   config.ai_settings.max_patch_lines_per_file = maxPatchLinesPerFile;
+  config.ai_settings.api_type = aiApiType;
   
   // 解析标签列表
   const labelsList = labelsInput.split(',').map(label => label.trim()).filter(label => label.length > 0);
@@ -135,6 +142,7 @@ function parseInputs(config) {
     maxPatchLinesPerFile,
     customBaseUrl,
     customApiKey,
+    aiApiType,
     config
   };
 }

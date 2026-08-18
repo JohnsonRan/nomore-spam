@@ -62,6 +62,7 @@ with:
 | `ai-model` | AI 模型名称 | 否 | `openai/gpt-4o` |
 | `ai-base-url` | 兼容 OpenAI API 的基础 URL；不填写则使用 GitHub Models | 否 | GitHub Models 端点 |
 | `ai-api-key` | 自定义提供商的 API Key；不填写则使用 GitHub Token | 否 | 空 |
+| `ai-api-type` | API 接口：`chat-completions` 或 `responses` | 否 | `chat-completions` |
 | `labels` | AI 分类可使用的逗号分隔标签 | 否 | `bug,enhancement,question` |
 | `language` | 机器人回复语言：`en` 或 `zh-CN` | 否 | `en` |
 | `analyze-file-changes` | 在分析中包含有限的 Pull Request 文件变更 | 否 | `true` |
@@ -96,6 +97,7 @@ jobs:
           github-token: ${{ github.token }}
           ai-base-url: ${{ secrets.AI_BASE_URL }}
           ai-api-key: ${{ secrets.AI_API_KEY }}
+          ai-api-type: responses
           ai-model: ${{ secrets.AI_MODEL }}
           labels: 'bug,enhancement,question'
           language: en
@@ -104,7 +106,7 @@ jobs:
           blacklist: ${{ secrets.BLACKLIST }}
 ```
 
-`ai-base-url` 必须是提供商的 API 基础 URL，而不是完整的 `/chat/completions` 端点。
+`ai-base-url` 必须是提供商的 API 基础 URL，而不是完整端点路径。使用 `ai-api-type: responses` 调用 `/responses`；默认的 `chat-completions` 调用 `/chat/completions`。
 
 ## 检测流程
 

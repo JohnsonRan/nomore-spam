@@ -30,6 +30,18 @@ function isContentFilterError(error) {
   return CONTENT_FILTER_MARKERS.some(marker => details.includes(marker));
 }
 
+function getResponsesText(response) {
+  if (typeof response.output_text === 'string') {
+    return response.output_text;
+  }
+
+  return (response.output || [])
+    .flatMap(item => item.content || [])
+    .map(content => content.text || content.value || '')
+    .filter(Boolean)
+    .join('\n');
+}
+
 /**
  * 统一的AI API调用函数
  * @param {Object} openai OpenAI客户端实例
@@ -44,14 +56,29 @@ async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用', nor
   try {
     core.info(logMessage(config.logging.ai_call_start, { purpose, model: aiModel }));
     
-    const response = await openai.chat.completions.create({
-      model: aiModel,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: config.ai_settings.max_tokens,
-      temperature: config.ai_settings.temperature
-    });
-    
-    const content = response.choices[0].message.content.trim();
+    let content;
+    if (config.ai_settings.api_type === 'responses') {
+      const response = await openai.responses.create({
+        model: aiModel,
+        input: prompt,
+        max_output_tokens: config.ai_settings.max_tokens
+      });
+      content = getResponsesText(response);
+    } else {
+      const response = await openai.chat.completions.create({
+        model: aiModel,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: config.ai_settings.max_tokens,
+        temperature: config.ai_settings.temperature
+      });
+      content = response.choices[0].message.content;
+    }
+
+    if (!content?.trim()) {
+      throw new Error('AI response did not contain text output');
+    }
+
+    content = content.trim();
     const result = normalizeResult ? content.toUpperCase() : content;
     core.info(logMessage(config.logging.ai_call_result, { purpose, result }));
     return result;

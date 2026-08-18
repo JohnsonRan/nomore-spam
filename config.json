@@ -137,6 +137,7 @@
     "labels": "bug,enhancement,question",
     "analysis_depth": "normal",
     "language": "en",
+    "ai_api_type": "chat-completions",
     "api_base_url": "https://models.github.ai/inference",
     "lock_reason": "spam"
   },

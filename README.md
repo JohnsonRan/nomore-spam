@@ -62,6 +62,7 @@ with:
 | `ai-model` | AI model name | No | `openai/gpt-4o` |
 | `ai-base-url` | OpenAI-compatible API base URL. Omit to use GitHub Models | No | GitHub Models endpoint |
 | `ai-api-key` | API key for a custom provider. Omit to use the GitHub token | No | Empty |
+| `ai-api-type` | API interface: `chat-completions` or `responses` | No | `chat-completions` |
 | `labels` | Comma-separated labels available to AI classification | No | `bug,enhancement,question` |
 | `language` | Bot response language: `en` or `zh-CN` | No | `en` |
 | `analyze-file-changes` | Include limited pull request file changes in analysis | No | `true` |
@@ -96,6 +97,7 @@ jobs:
           github-token: ${{ github.token }}
           ai-base-url: ${{ secrets.AI_BASE_URL }}
           ai-api-key: ${{ secrets.AI_API_KEY }}
+          ai-api-type: responses
           ai-model: ${{ secrets.AI_MODEL }}
           labels: 'bug,enhancement,question'
           language: en
@@ -104,7 +106,7 @@ jobs:
           blacklist: ${{ secrets.BLACKLIST }}
 ```
 
-`ai-base-url` must be the provider's API base URL, not the full `/chat/completions` endpoint.
+`ai-base-url` must be the provider's API base URL, not a full endpoint path. Use `ai-api-type: responses` for `/responses`; the default `chat-completions` uses `/chat/completions`.
 
 ## Detection flow
 

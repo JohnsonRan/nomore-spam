@@ -5,7 +5,11 @@ function cloneConfig() {
   return JSON.parse(JSON.stringify(baseConfig));
 }
 
-describe('locale configuration', () => {
+describe('configuration', () => {
+  test('uses chat completions by default', () => {
+    expect(baseConfig.defaults.ai_api_type).toBe('chat-completions');
+  });
+
   test('defaults unknown languages to English', () => {
     expect(normalizeLanguage('fr')).toBe('en');
     expect(applyLocale(cloneConfig(), 'fr')).toBe('en');
