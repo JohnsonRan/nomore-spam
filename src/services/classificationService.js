@@ -26,27 +26,32 @@ class ClassificationService {
     try {
       const labelsOptions = labelsList.map(l => l.toUpperCase()).join('、');
       
-      let prompt;
+      let request;
       let purpose;
       
       if (type === 'issue') {
-        prompt = this.config.prompts.issue_classification
-          .replace('{issue_title}', content.title)
-          .replace('{user_content}', extractedContent)
-          .replace('{labels_options}', labelsOptions);
+        request = {
+          instructions: this.config.prompts.issue_classification
+            .replace('{labels_options}', labelsOptions),
+          input: JSON.stringify({ title: content.title, content: extractedContent })
+        };
         purpose = 'Issue分类';
       } else if (type === 'pr') {
-        prompt = this.config.prompts.pr_classification
-          .replace('{pr_title}', content.title)
-          .replace('{pr_body}', content.body || '')
-          .replace('{file_changes}', fileChanges)
-          .replace('{labels_options}', labelsOptions);
+        request = {
+          instructions: this.config.prompts.pr_classification
+            .replace('{labels_options}', labelsOptions),
+          input: JSON.stringify({
+            title: content.title,
+            description: content.body || '',
+            fileChanges
+          })
+        };
         purpose = 'PR分类';
       } else {
         throw new Error(`不支持的分类类型: ${type}`);
       }
       
-      const classification = await callAI(this.openai, this.aiModel, prompt, this.config, purpose);
+      const classification = await callAI(this.openai, this.aiModel, request, this.config, purpose);
       
       core.info(logMessage(this.config.logging.ai_call_result, { 
         purpose, 

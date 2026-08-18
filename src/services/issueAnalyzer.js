@@ -16,13 +16,17 @@ class IssueAnalyzer {
    * 第一步：检测是否为垃圾内容（仅检测明显垃圾信息）
    */
   async detectSpam(issue, templateAnalysisReport) {
-    const prompt = this.config.prompts.spam_detection
-      .replace('{title}', issue.title)
-      .replace('{body}', issue.body || '')
-      .replace('{template_analysis}', templateAnalysisReport)
-      .replace('{file_changes}', ''); // Issue没有文件变更
+    const request = {
+      instructions: this.config.prompts.spam_detection,
+      input: JSON.stringify({
+        type: 'issue',
+        title: issue.title,
+        body: issue.body || '',
+        templateAnalysis: templateAnalysisReport
+      })
+    };
     
-    return await callAI(this.openai, this.aiModel, prompt, this.config, '垃圾检测');
+    return await callAI(this.openai, this.aiModel, request, this.config, '垃圾检测');
   }
 
   /**
@@ -33,25 +37,32 @@ class IssueAnalyzer {
       return 'NOT_COVERED';
     }
 
-    const prompt = this.config.prompts.readme_coverage_check
-      .replace('{readme_content}', readmeContent || '')
-      .replace('{pinned_issues_content}', pinnedIssuesContent || '')
-      .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '');
+    const request = {
+      instructions: this.config.prompts.readme_coverage_check,
+      input: JSON.stringify({
+        readme: readmeContent || '',
+        pinnedIssues: pinnedIssuesContent || '',
+        issue: { title: issue.title, body: issue.body || '' }
+      })
+    };
     
-    return await callAI(this.openai, this.aiModel, prompt, this.config, 'README覆盖检查');
+    return await callAI(this.openai, this.aiModel, request, this.config, 'README覆盖检查');
   }
 
   /**
    * 第三步：检查内容质量
    */
   async checkContentQuality(issue, templateAnalysisReport) {
-    const prompt = this.config.prompts.content_quality_check
-      .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '')
-      .replace('{template_analysis}', templateAnalysisReport);
+    const request = {
+      instructions: this.config.prompts.content_quality_check,
+      input: JSON.stringify({
+        title: issue.title,
+        body: issue.body || '',
+        templateAnalysis: templateAnalysisReport
+      })
+    };
     
-    return await callAI(this.openai, this.aiModel, prompt, this.config, '内容质量检查');
+    return await callAI(this.openai, this.aiModel, request, this.config, '内容质量检查');
   }
 
   /**
@@ -62,12 +73,15 @@ class IssueAnalyzer {
       return false;
     }
 
-    const relevancePrompt = this.config.prompts.readme_relevance
-      .replace('{readme_content}', readmeContent)
-      .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '');
+    const request = {
+      instructions: this.config.prompts.readme_relevance,
+      input: JSON.stringify({
+        readme: readmeContent,
+        issue: { title: issue.title, body: issue.body || '' }
+      })
+    };
     
-    const decision = await callAI(this.openai, this.aiModel, relevancePrompt, this.config, 'README相关性检测');
+    const decision = await callAI(this.openai, this.aiModel, request, this.config, 'README相关性检测');
     return decision === 'RELATED';
   }
 
@@ -102,14 +116,17 @@ class IssueAnalyzer {
    * 生成基于README的回答
    */
   async generateReadmeAnswer(issue, readmeContent) {
-    const answerPrompt = this.config.prompts.readme_answer
-      .replace('{readme_content}', readmeContent)
-      .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '')
-      .replace('{readme_answer_length}', this.config.locale.readme_answer_length)
-      .replace('{answer_language}', this.config.locale.answer_language);
-    
-    return await callAI(this.openai, this.aiModel, answerPrompt, this.config, 'README回答生成', false);
+    const request = {
+      instructions: this.config.prompts.readme_answer
+        .replace('{readme_answer_length}', this.config.locale.readme_answer_length)
+        .replace('{answer_language}', this.config.locale.answer_language),
+      input: JSON.stringify({
+        readme: readmeContent,
+        issue: { title: issue.title, body: issue.body || '' }
+      })
+    };
+
+    return await callAI(this.openai, this.aiModel, request, this.config, 'README回答生成', false);
   }
 
   /**
@@ -121,14 +138,17 @@ class IssueAnalyzer {
       return null; // 没有 README 内容无法生成智能回答
     }
 
-    const smartAnswerPrompt = this.config.prompts.unclear_issue_smart_answer
-      .replace('{readme_content}', readmeContent)
-      .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '')
-      .replace('{smart_answer_length}', this.config.locale.smart_answer_length)
-      .replace('{answer_language}', this.config.locale.answer_language);
+    const request = {
+      instructions: this.config.prompts.unclear_issue_smart_answer
+        .replace('{smart_answer_length}', this.config.locale.smart_answer_length)
+        .replaceAll('{answer_language}', this.config.locale.answer_language),
+      input: JSON.stringify({
+        readme: readmeContent,
+        issue: { title: issue.title, body: issue.body || '' }
+      })
+    };
     
-    const result = await callAI(this.openai, this.aiModel, smartAnswerPrompt, this.config, 'UNCLEAR智能回答生成', false);
+    const result = await callAI(this.openai, this.aiModel, request, this.config, 'UNCLEAR智能回答生成', false);
     
     // 解析 AI 响应
     const normalizedResult = result.toUpperCase();
@@ -153,34 +173,44 @@ class IssueAnalyzer {
    * 检测PR是否为垃圾内容（第一步）
    */
   async detectPRSpam(pr, fileChanges = '') {
-    const prompt = this.config.prompts.pr_spam_detection
-      .replace('{pr_title}', pr.title)
-      .replace('{pr_body}', pr.body || '')
-      .replace('{file_changes}', fileChanges);
+    const request = {
+      instructions: this.config.prompts.pr_spam_detection,
+      input: JSON.stringify({
+        title: pr.title,
+        body: pr.body || '',
+        fileChanges
+      })
+    };
     
-    return await callAI(this.openai, this.aiModel, prompt, this.config, 'PR垃圾检测');
+    return await callAI(this.openai, this.aiModel, request, this.config, 'PR垃圾检测');
   }
 
   /**
    * 检测PR提交标题规范性（第二步）
    */
   async checkPRCommitCompliance(pr) {
-    const prompt = this.config.prompts.pr_commit_check
-      .replace('{pr_title}', pr.title);
+    const request = {
+      instructions: this.config.prompts.pr_commit_check,
+      input: JSON.stringify({ title: pr.title })
+    };
     
-    return await callAI(this.openai, this.aiModel, prompt, this.config, 'PR提交规范检查');
+    return await callAI(this.openai, this.aiModel, request, this.config, 'PR提交规范检查');
   }
 
   /**
    * 检测PR质量（第三步）
    */
   async checkPRQuality(pr, fileChanges = '') {
-    const prompt = this.config.prompts.pr_quality_check
-      .replace('{pr_title}', pr.title)
-      .replace('{pr_body}', pr.body || '')
-      .replace('{file_changes}', fileChanges);
+    const request = {
+      instructions: this.config.prompts.pr_quality_check,
+      input: JSON.stringify({
+        title: pr.title,
+        body: pr.body || '',
+        fileChanges
+      })
+    };
     
-    return await callAI(this.openai, this.aiModel, prompt, this.config, 'PR质量检查');
+    return await callAI(this.openai, this.aiModel, request, this.config, 'PR质量检查');
   }
 
   /**

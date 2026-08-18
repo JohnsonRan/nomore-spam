@@ -12,6 +12,7 @@
 - 验证 Pull Request 标题，并可选择分析文件变更
 - 使用可配置标签对有效的 Issue 和 Pull Request 进行分类
 - 关闭被 AI 提供商明确内容安全过滤器拒绝的内容，同时不把普通 API 错误误判为恶意内容
+- 将可信检测指令与不可信的 Issue、Pull Request 和仓库内容分离
 - 支持 GitHub Models 和兼容 OpenAI API 的提供商
 - 支持英文和简体中文机器人回复
 - 支持用户名黑名单

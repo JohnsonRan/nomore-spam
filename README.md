@@ -12,6 +12,7 @@ AI-powered GitHub Action for detecting spam, low-quality issues, and suspicious 
 - Validates pull request titles and optionally inspects file changes
 - Classifies valid issues and pull requests with configurable labels
 - Closes content rejected by an AI provider's explicit safety filter without treating ordinary API errors as malicious content
+- Separates trusted detection instructions from untrusted issue, pull request, and repository content
 - Supports GitHub Models and OpenAI-compatible API providers
 - Supports English and Simplified Chinese bot responses
 - Supports username blacklists
