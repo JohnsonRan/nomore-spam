@@ -11,7 +11,7 @@
 - 要求描述不清的 Bug 报告补充信息
 - 验证 Pull Request 标题，并可选择分析文件变更
 - 使用可配置标签对有效的 Issue 和 Pull Request 进行分类
-- 关闭被 AI 提供商明确内容安全过滤器拒绝的内容，同时不把普通 API 错误误判为恶意内容
+- 明确处理 HTTP 内容过滤错误、Responses API 拒绝、不完整输出和失败状态
 - 将可信检测指令与不可信的 Issue、Pull Request 和仓库内容分离
 - 支持 GitHub Models 和兼容 OpenAI API 的提供商
 - 支持英文和简体中文机器人回复
@@ -120,7 +120,7 @@ jobs:
 5. 对类似 Bug 的分类执行额外质量检查。
 6. 根据情况要求补充缺失信息，或关闭基础使用问题。
 
-当 AI 提供商返回 `content_filter` 或 `ResponsibleAIPolicyViolation` 等明确内容策略拒绝信号时，NoMore Spam 会添加中立说明并关闭 Issue，但不会锁定它。其他 HTTP 400 响应仍作为普通 Action 错误处理，不会被视为内容违规。
+当 AI 提供商返回 `content_filter`、`ResponsibleAIPolicyViolation` 或 Responses API 拒绝等明确内容策略信号时，NoMore Spam 会添加中立说明并关闭 Issue，但不会锁定它。因 Token 限制产生的不完整输出、失败响应状态和无关的 HTTP 400 响应仍作为普通 Action 错误处理。
 
 ### Pull Request
 

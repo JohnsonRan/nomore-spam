@@ -17,6 +17,8 @@ const CONTENT_FILTER_MARKERS = [
  * 只处理带明确过滤信号的400响应，避免把鉴权、模型或参数错误误判为恶意内容。
  */
 function isContentFilterError(error) {
+  if (error?.code === 'content_filter_refusal') return true;
+
   const status = error?.status || error?.response?.status || error?.statusCode;
   if (status !== 400) return false;
 
@@ -32,13 +34,63 @@ function isContentFilterError(error) {
   return CONTENT_FILTER_MARKERS.some(marker => details.includes(marker));
 }
 
+function getResponsesContent(response, type) {
+  return (response.output || [])
+    .flatMap(item => item.content || [])
+    .filter(content => content.type === type);
+}
+
+function createResponseError(message, code, details) {
+  const error = new Error(message);
+  error.code = code;
+  error.error = details;
+  return error;
+}
+
 function getResponsesText(response) {
+  if (response.status === 'failed') {
+    throw createResponseError(
+      response.error?.message || 'Responses API request failed',
+      response.error?.code || 'response_failed',
+      response.error
+    );
+  }
+
+  if (response.status === 'incomplete') {
+    const reason = response.incomplete_details?.reason || 'unknown';
+    if (reason === 'content_filter') {
+      throw createResponseError(
+        'Responses API output was blocked by content filtering',
+        'content_filter_refusal',
+        response.incomplete_details
+      );
+    }
+    throw createResponseError(
+      `Responses API output was incomplete: ${reason}`,
+      'response_incomplete',
+      response.incomplete_details
+    );
+  }
+
+  const refusal = getResponsesContent(response, 'refusal')[0];
+  if (refusal) {
+    throw createResponseError(
+      refusal.refusal || 'Responses API refused the request',
+      'content_filter_refusal',
+      refusal
+    );
+  }
+
   if (typeof response.output_text === 'string') {
     return response.output_text;
   }
 
-  return (response.output || [])
-    .flatMap(item => item.content || [])
+  const outputText = getResponsesContent(response, 'output_text');
+  const contentItems = outputText.length
+    ? outputText
+    : (response.output || []).flatMap(item => item.content || []);
+
+  return contentItems
     .map(content => content.text || content.value || '')
     .filter(Boolean)
     .join('\n');

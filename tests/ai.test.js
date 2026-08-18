@@ -129,4 +129,103 @@ describe('callAI', () => {
       responsesConfig
     )).resolves.toBe('VALID');
   });
+
+  test('treats Responses API refusals as content filter errors', async () => {
+    const responsesConfig = {
+      ...config,
+      ai_settings: { ...config.ai_settings, api_type: 'responses' }
+    };
+    const openai = {
+      responses: {
+        create: jest.fn().mockResolvedValue({
+          status: 'completed',
+          output: [{ content: [{ type: 'refusal', refusal: 'Request refused' }] }]
+        })
+      }
+    };
+
+    const error = await callAI(
+      openai,
+      'model',
+      { instructions: 'Validate input.', input: 'prompt' },
+      responsesConfig
+    ).catch(caught => caught);
+
+    expect(error).toMatchObject({ code: 'content_filter_refusal' });
+    expect(isContentFilterError(error)).toBe(true);
+  });
+
+  test('reports incomplete Responses API output without treating it as filtering', async () => {
+    const responsesConfig = {
+      ...config,
+      ai_settings: { ...config.ai_settings, api_type: 'responses' }
+    };
+    const openai = {
+      responses: {
+        create: jest.fn().mockResolvedValue({
+          status: 'incomplete',
+          incomplete_details: { reason: 'max_output_tokens' },
+          output: []
+        })
+      }
+    };
+
+    const error = await callAI(
+      openai,
+      'model',
+      { instructions: 'Validate input.', input: 'prompt' },
+      responsesConfig
+    ).catch(caught => caught);
+
+    expect(error).toMatchObject({ code: 'response_incomplete' });
+    expect(isContentFilterError(error)).toBe(false);
+  });
+
+  test('treats content-filtered incomplete output as a refusal', async () => {
+    const responsesConfig = {
+      ...config,
+      ai_settings: { ...config.ai_settings, api_type: 'responses' }
+    };
+    const openai = {
+      responses: {
+        create: jest.fn().mockResolvedValue({
+          status: 'incomplete',
+          incomplete_details: { reason: 'content_filter' },
+          output: []
+        })
+      }
+    };
+
+    const error = await callAI(
+      openai,
+      'model',
+      { instructions: 'Validate input.', input: 'prompt' },
+      responsesConfig
+    ).catch(caught => caught);
+
+    expect(isContentFilterError(error)).toBe(true);
+  });
+
+  test('surfaces failed Responses API status details', async () => {
+    const responsesConfig = {
+      ...config,
+      ai_settings: { ...config.ai_settings, api_type: 'responses' }
+    };
+    const openai = {
+      responses: {
+        create: jest.fn().mockResolvedValue({
+          status: 'failed',
+          error: { code: 'server_error', message: 'Provider failed' },
+          output: []
+        })
+      }
+    };
+
+    await expect(callAI(
+      openai,
+      'model',
+      { instructions: 'Validate input.', input: 'prompt' },
+      responsesConfig
+    )).rejects.toMatchObject({ code: 'server_error', message: 'Provider failed' });
+  });
 });

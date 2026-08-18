@@ -11,7 +11,7 @@ AI-powered GitHub Action for detecting spam, low-quality issues, and suspicious 
 - Requests more information for unclear bug reports
 - Validates pull request titles and optionally inspects file changes
 - Classifies valid issues and pull requests with configurable labels
-- Closes content rejected by an AI provider's explicit safety filter without treating ordinary API errors as malicious content
+- Handles HTTP content-filter errors, Responses API refusals, incomplete output, and failed response states explicitly
 - Separates trusted detection instructions from untrusted issue, pull request, and repository content
 - Supports GitHub Models and OpenAI-compatible API providers
 - Supports English and Simplified Chinese bot responses
@@ -120,7 +120,7 @@ jobs:
 5. Run additional quality checks for bug-like classifications.
 6. Ask for missing information or close basic usage questions when applicable.
 
-When an AI provider returns an explicit content-policy rejection such as `content_filter` or `ResponsibleAIPolicyViolation`, NoMore Spam adds a neutral explanation and closes the issue without locking it. Other HTTP 400 responses remain normal action failures and are not treated as content violations.
+When an AI provider returns an explicit content-policy rejection such as `content_filter`, `ResponsibleAIPolicyViolation`, or a Responses API refusal, NoMore Spam adds a neutral explanation and closes the issue without locking it. Incomplete output caused by token limits, failed response states, and unrelated HTTP 400 responses remain normal action failures.
 
 ### Pull requests
 
