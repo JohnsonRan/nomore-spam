@@ -23,9 +23,13 @@ inputs:
     required: false
     default: ''
   labels:
-    description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement,question"). Note: "question" label is automatically added to unclear issues'
+    description: 'Comma-separated list of labels for AI to classify issues (e.g., "bug,enhancement,question")'
     required: false
     default: 'bug,enhancement,question'
+  language:
+    description: 'Language for bot comments and generated answers: en or zh-CN'
+    required: false
+    default: 'en'
   analyze-file-changes:
     description: 'Whether to analyze PR file changes for spam detection (true/false)'
     required: false
@@ -62,6 +66,7 @@ runs:
         INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
         INPUT_AI_MODEL: ${{ inputs.ai-model }}
         INPUT_LABELS: ${{ inputs.labels }}
+        INPUT_LANGUAGE: ${{ inputs.language }}
         INPUT_ANALYZE_FILE_CHANGES: ${{ inputs.analyze-file-changes }}
         INPUT_MAX_ANALYSIS_DEPTH: ${{ inputs.max-analysis-depth }}
         INPUT_BLACKLIST: ${{ inputs.blacklist }}

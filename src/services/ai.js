@@ -37,9 +37,10 @@ function isContentFilterError(error) {
  * @param {string} prompt 提示词
  * @param {Object} config 配置对象
  * @param {string} purpose 调用目的描述
+ * @param {boolean} normalizeResult 是否将响应转为大写判定值
  * @returns {Promise<string>} AI响应结果
  */
-async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用') {
+async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用', normalizeResult = true) {
   try {
     core.info(logMessage(config.logging.ai_call_start, { purpose, model: aiModel }));
     
@@ -50,7 +51,8 @@ async function callAI(openai, aiModel, prompt, config, purpose = 'AI调用') {
       temperature: config.ai_settings.temperature
     });
     
-    const result = response.choices[0].message.content.trim().toUpperCase();
+    const content = response.choices[0].message.content.trim();
+    const result = normalizeResult ? content.toUpperCase() : content;
     core.info(logMessage(config.logging.ai_call_result, { purpose, result }));
     return result;
     

@@ -105,9 +105,11 @@ class IssueAnalyzer {
     const answerPrompt = this.config.prompts.readme_answer
       .replace('{readme_content}', readmeContent)
       .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '');
+      .replace('{issue_body}', issue.body || '')
+      .replace('{readme_answer_length}', this.config.locale.readme_answer_length)
+      .replace('{answer_language}', this.config.locale.answer_language);
     
-    return await callAI(this.openai, this.aiModel, answerPrompt, this.config, 'README回答生成');
+    return await callAI(this.openai, this.aiModel, answerPrompt, this.config, 'README回答生成', false);
   }
 
   /**
@@ -122,14 +124,17 @@ class IssueAnalyzer {
     const smartAnswerPrompt = this.config.prompts.unclear_issue_smart_answer
       .replace('{readme_content}', readmeContent)
       .replace('{issue_title}', issue.title)
-      .replace('{issue_body}', issue.body || '');
+      .replace('{issue_body}', issue.body || '')
+      .replace('{smart_answer_length}', this.config.locale.smart_answer_length)
+      .replace('{answer_language}', this.config.locale.answer_language);
     
-    const result = await callAI(this.openai, this.aiModel, smartAnswerPrompt, this.config, 'UNCLEAR智能回答生成');
+    const result = await callAI(this.openai, this.aiModel, smartAnswerPrompt, this.config, 'UNCLEAR智能回答生成', false);
     
     // 解析 AI 响应
-    if (result.startsWith('HELPFUL_ANSWER:')) {
+    const normalizedResult = result.toUpperCase();
+    if (normalizedResult.startsWith('HELPFUL_ANSWER:')) {
       return result.substring('HELPFUL_ANSWER:'.length).trim();
-    } else if (result === 'NEED_MORE_INFO') {
+    } else if (normalizedResult === 'NEED_MORE_INFO') {
       return null; // 确实需要更多信息
     }
     

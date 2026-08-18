@@ -1,0 +1,19 @@
+{
+  "answer_language": "English",
+  "readme_answer_length": "2-3 sentences",
+  "smart_answer_length": "1-2 sentences",
+  "responses": {
+    "issue_spam": "🤖 This issue was detected as spam and will be closed and locked. If you believe this is a mistake, please contact the repository maintainers.",
+    "issue_content_filtered": "🤖 The AI provider's content safety policy rejected this issue, so automated checks cannot continue. The issue will be closed but not locked. If you believe this is a mistake, edit the content and submit it again or contact the repository maintainers.",
+    "issue_readme_covered": "🤖 Based on the answer above, this question has been resolved and the issue will be closed. Continue the discussion here if you have another question.",
+    "issue_basic": "🤖 This issue concerns basic usage. Please check the documentation or use a search engine first.",
+    "issue_unclear": "🤖 This issue does not contain enough information. Please add:\n\n- A clear description of the problem\n- Expected and actual behavior\n- Environment and version information\n- Reproduction steps\n- Relevant logs or screenshots",
+    "readme_answer_prefix": "🤖 Based on the project README:\n\n",
+    "unclear_answer_prefix": "🤖 Based on the project documentation:\n\n",
+    "pr_closed": "🤖 This pull request was detected as spam or does not meet the commit-title requirements and will be closed. If you believe this is a mistake, please contact the repository maintainers.",
+    "pr_content_filtered": "🤖 The AI provider's content safety policy rejected this pull request, so automated checks cannot continue. The pull request will be closed. If you believe this is a mistake, edit the content and submit it again or contact the repository maintainers.",
+    "pr_malicious": "🤖 This pull request contains suspicious or malicious content and will be closed. If you believe this is a mistake, please contact the repository maintainers.",
+    "pr_trivial": "🤖 This pull request contains trivial or meaningless changes and will be closed. Please ensure the pull request provides a useful improvement.",
+    "pr_invalid_commit": "🤖 This pull request title is not descriptive enough or does not follow commit conventions and will be closed. If you believe this is a mistake, please contact the repository maintainers."
+  }
+}

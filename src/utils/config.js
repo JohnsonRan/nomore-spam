@@ -2,6 +2,24 @@ const core = require('@actions/core');
 const fs = require('fs');
 const path = require('path');
 
+const SUPPORTED_LANGUAGES = new Set(['en', 'zh-cn']);
+
+function normalizeLanguage(language) {
+  return language?.trim().toLowerCase() === 'zh-cn' ? 'zh-CN' : 'en';
+}
+
+function applyLocale(config, requestedLanguage) {
+  const language = normalizeLanguage(requestedLanguage);
+  const localePath = path.join(__dirname, '..', '..', 'locales', `${language}.json`);
+  const locale = JSON.parse(fs.readFileSync(localePath, 'utf8'));
+
+  config.responses = { ...config.responses, ...locale.responses };
+  config.locale = locale;
+  config.defaults.language = language;
+
+  return language;
+}
+
 /**
  * 验证配置完整性
  * @param {Object} config 配置对象
@@ -68,6 +86,12 @@ function parseInputs(config) {
   const aiModel = core.getInput('ai-model') || process.env.INPUT_AI_MODEL || config.defaults.ai_model;
   const labelsInput = core.getInput('labels') || process.env.INPUT_LABELS || config.defaults.labels;
   const blacklistUsersInput = core.getInput('blacklist') || process.env.INPUT_BLACKLIST || '';
+  const requestedLanguage = core.getInput('language') || process.env.INPUT_LANGUAGE || config.defaults.language;
+  const language = applyLocale(config, requestedLanguage);
+
+  if (!SUPPORTED_LANGUAGES.has(requestedLanguage.trim().toLowerCase())) {
+    core.warning(`Unsupported language "${requestedLanguage}"; falling back to English.`);
+  }
   
   // 获取自定义AI配置参数
   const customBaseUrl = core.getInput('ai-base-url') || process.env.INPUT_AI_BASE_URL || '';
@@ -104,6 +128,7 @@ function parseInputs(config) {
     aiModel,
     labelsList,
     blacklistUsers,
+    language,
     analyzeFileChanges,
     analysisDepth,
     maxFilesToAnalyze,
@@ -117,5 +142,7 @@ function parseInputs(config) {
 module.exports = {
   loadConfig,
   parseInputs,
-  validateConfig
+  validateConfig,
+  applyLocale,
+  normalizeLanguage
 };

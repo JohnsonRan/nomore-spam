@@ -18,24 +18,24 @@
     
     "readme_relevance": "Analyze if this GitHub Issue is related to content in the README:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nIs this issue asking about something that is already explained or covered in the README?\n\nRespond ONLY with:\n- `RELATED` - if the issue is asking about content covered in README\n- `NOT_RELATED` - if the issue is not about README content",
     
-    "readme_answer": "Based STRICTLY on the README content provided, provide a direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nSTRICT REQUIREMENTS:\n- ONLY use information that is EXPLICITLY stated in the README content above\n- DO NOT infer, assume, or add any information not directly found in the README\n- DO NOT provide general knowledge or external information\n- Answer must be concise (maximum 2-3 sentences in Chinese)\n- Quote the exact relevant section from README when applicable\n\nProvide the answer based ONLY on README content:",
+    "readme_answer": "Based STRICTLY on the README content provided, provide a direct answer to this GitHub Issue:\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nSTRICT REQUIREMENTS:\n- ONLY use information that is EXPLICITLY stated in the README content above\n- DO NOT infer, assume, or add any information not directly found in the README\n- DO NOT provide general knowledge or external information\n- Answer must be concise ({readme_answer_length})\n- Respond in {answer_language}\n- Quote the exact relevant section from README when applicable\n\nProvide the answer based ONLY on README content:",
     
-    "unclear_issue_smart_answer": "Provide a brief, helpful answer for this unclear GitHub Issue based STRICTLY on README content.\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nSTRICT Requirements:\n- ONLY answer if README contains DIRECTLY relevant and EXPLICIT information\n- Answer must be based STRICTLY on specific README content, DO NOT fabricate or infer\n- DO NOT use general knowledge or assumptions\n- Answer must be concise (1-2 sentences, max 60 Chinese characters)\n- If no EXPLICIT relevant content found in README, respond with NEED_MORE_INFO\n- Respond in Chinese\n\nResponse format:\n- If explicit relevant info found in README: HELPFUL_ANSWER: + brief Chinese answer (quote README section)\n- If no explicit relevant info in README: NEED_MORE_INFO"
+    "unclear_issue_smart_answer": "Provide a brief, helpful answer for this unclear GitHub Issue based STRICTLY on README content.\n\nREADME Content: {readme_content}\n\nIssue Title: {issue_title}\nIssue Body: {issue_body}\n\nSTRICT Requirements:\n- ONLY answer if README contains DIRECTLY relevant and EXPLICIT information\n- Answer must be based STRICTLY on specific README content, DO NOT fabricate or infer\n- DO NOT use general knowledge or assumptions\n- Answer must be concise ({smart_answer_length})\n- If no EXPLICIT relevant content found in README, respond with NEED_MORE_INFO\n- Respond in {answer_language}\n\nResponse format:\n- If explicit relevant info found in README: HELPFUL_ANSWER: + brief answer in {answer_language} (quote README section)\n- If no explicit relevant info in README: NEED_MORE_INFO"
   },
   
   "responses": {
-    "issue_spam": "🤖 此Issue已被检测为垃圾信息，将被关闭并锁定。如果您认为这是误判，请联系仓库维护者。",
-    "issue_content_filtered": "🤖 AI服务的内容安全策略拒绝处理此Issue，因此自动检查无法继续，Issue将被关闭但不会锁定。如果您认为这是误判，请修改内容后重新提交或联系仓库维护者。",
-    "issue_readme_covered": "🤖 根据上述回答，此问题已得到解决，Issue将被关闭。如有其他疑问，请在此Issue中继续讨论。",
-    "issue_basic": "🤖 此Issue涉及的是基础使用问题，请善用 Google 等任何搜索引擎。",
-    "issue_unclear": "🤖 您的Issue描述过于简单，缺乏足够的信息。为了更好地帮助您，请补充以下信息：\n\n📝 **请详细描述问题：**\n- 您遇到的具体问题是什么？\n- 预期的行为是什么？\n- 实际发生的行为是什么？\n\n🔧 **环境信息：**\n- 操作系统版本\n- 相关软件版本\n- 浏览器版本（如适用）\n\n📋 **重现步骤：**\n- 第一步\n- 第二步\n\n📎 **其他信息：**\n- 错误信息截图\n- 相关日志\n\n请编辑您的Issue并添加上述信息，这样我们就能更好地理解和解决您的问题了！",
-    "readme_answer_prefix": "🤖 根据项目README的内容，我来为您解答这个问题：\n\n",
-    "unclear_answer_prefix": "🤖 根据项目文档，为您提供以下信息：\n\n",
-    "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。",
-    "pr_content_filtered": "🤖 AI服务的内容安全策略拒绝处理此Pull Request，因此自动检查无法继续，Pull Request将被关闭。如果您认为这是误判，请修改内容后重新提交或联系仓库维护者。",
-    "pr_malicious": "🤖 此Pull Request包含可疑或恶意内容，将被关闭。如果您认为这是误判，请联系仓库维护者。",
-    "pr_trivial": "🤖 此Pull Request的变更过于简单或无实际意义，将被关闭。请确保PR包含有价值的改进。",
-    "pr_invalid_commit": "🤖 此Pull Request的标题不够描述性或不符合规范，将被关闭。如果您认为这是误判，请联系仓库维护者。"
+    "issue_spam": "🤖 This issue was detected as spam and will be closed and locked. If you believe this is a mistake, please contact the repository maintainers.",
+    "issue_content_filtered": "🤖 The AI provider's content safety policy rejected this issue, so automated checks cannot continue. The issue will be closed but not locked. If you believe this is a mistake, edit the content and submit it again or contact the repository maintainers.",
+    "issue_readme_covered": "🤖 Based on the answer above, this question has been resolved and the issue will be closed. Continue the discussion here if you have another question.",
+    "issue_basic": "🤖 This issue concerns basic usage. Please check the documentation or use a search engine first.",
+    "issue_unclear": "🤖 This issue does not contain enough information. Please add:\n\n- A clear description of the problem\n- Expected and actual behavior\n- Environment and version information\n- Reproduction steps\n- Relevant logs or screenshots",
+    "readme_answer_prefix": "🤖 Based on the project README:\n\n",
+    "unclear_answer_prefix": "🤖 Based on the project documentation:\n\n",
+    "pr_closed": "🤖 This pull request was detected as spam or does not meet the commit-title requirements and will be closed. If you believe this is a mistake, please contact the repository maintainers.",
+    "pr_content_filtered": "🤖 The AI provider's content safety policy rejected this pull request, so automated checks cannot continue. The pull request will be closed. If you believe this is a mistake, edit the content and submit it again or contact the repository maintainers.",
+    "pr_malicious": "🤖 This pull request contains suspicious or malicious content and will be closed. If you believe this is a mistake, please contact the repository maintainers.",
+    "pr_trivial": "🤖 This pull request contains trivial or meaningless changes and will be closed. Please ensure the pull request provides a useful improvement.",
+    "pr_invalid_commit": "🤖 This pull request title is not descriptive enough or does not follow commit conventions and will be closed. If you believe this is a mistake, please contact the repository maintainers."
   },
   
   "logging": {
@@ -136,6 +136,7 @@
     "ai_model": "openai/gpt-4o",
     "labels": "bug,enhancement,question",
     "analysis_depth": "normal",
+    "language": "en",
     "api_base_url": "https://models.github.ai/inference",
     "lock_reason": "spam"
   },

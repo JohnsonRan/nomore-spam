@@ -1,0 +1,19 @@
+{
+  "answer_language": "Simplified Chinese",
+  "readme_answer_length": "2-3 sentences",
+  "smart_answer_length": "1-2 sentences, no more than 60 Chinese characters",
+  "responses": {
+    "issue_spam": "🤖 此Issue已被检测为垃圾信息，将被关闭并锁定。如果您认为这是误判，请联系仓库维护者。",
+    "issue_content_filtered": "🤖 AI服务的内容安全策略拒绝处理此Issue，因此自动检查无法继续，Issue将被关闭但不会锁定。如果您认为这是误判，请修改内容后重新提交或联系仓库维护者。",
+    "issue_readme_covered": "🤖 根据上述回答，此问题已得到解决，Issue将被关闭。如有其他疑问，请在此Issue中继续讨论。",
+    "issue_basic": "🤖 此Issue涉及的是基础使用问题，请先查阅文档或使用搜索引擎。",
+    "issue_unclear": "🤖 您的Issue缺少足够信息，请补充：\n\n- 清晰的问题描述\n- 预期行为和实际行为\n- 环境及版本信息\n- 重现步骤\n- 相关日志或截图",
+    "readme_answer_prefix": "🤖 根据项目README的内容：\n\n",
+    "unclear_answer_prefix": "🤖 根据项目文档：\n\n",
+    "pr_closed": "🤖 此Pull Request已被检测为垃圾信息或未符合Git Commit规范，将被关闭。如果您认为这是误判，请联系仓库维护者。",
+    "pr_content_filtered": "🤖 AI服务的内容安全策略拒绝处理此Pull Request，因此自动检查无法继续，Pull Request将被关闭。如果您认为这是误判，请修改内容后重新提交或联系仓库维护者。",
+    "pr_malicious": "🤖 此Pull Request包含可疑或恶意内容，将被关闭。如果您认为这是误判，请联系仓库维护者。",
+    "pr_trivial": "🤖 此Pull Request的变更过于简单或无实际意义，将被关闭。请确保PR包含有价值的改进。",
+    "pr_invalid_commit": "🤖 此Pull Request的标题不够描述性或不符合规范，将被关闭。如果您认为这是误判，请联系仓库维护者。"
+  }
+}
